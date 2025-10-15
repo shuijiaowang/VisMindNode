@@ -1,13 +1,24 @@
 <script setup>
 
-import CytoscapeTest from "@/components/CytoscapeTest.vue";
+import CanvasView from "@/components/CanvasView.vue";
 </script>
 
 <template>
-  <h1>Cytoscape.js 测试</h1>
-  <CytoscapeTest/>
+  <CanvasView/>
 </template>
 
-<style scoped>
-
+<style >
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html, body {
+  height: 100%;
+  width: 100%;
+}
+#app {
+  height: 100%;
+  width: 100%;
+}
 </style>
