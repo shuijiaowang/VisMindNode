@@ -12,7 +12,7 @@
     <div class="origin-marker">原点(0,0)</div>
     <!-- 未来可添加更多画布元素 -->
     <TitleComponent
-        v-for="title in canvasStore.titles"
+        v-for="title in canvasStore?.titles"
         :key="title.id"
         :id="title.id"
         :x="title.x"

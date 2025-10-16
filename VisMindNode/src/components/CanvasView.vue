@@ -35,6 +35,9 @@
     <div>右边界: {{ canvasStore.visibleAreaInCanvasBounds.maxX.toFixed(2) }}</div>
     <div>上边界: {{ canvasStore.visibleAreaInCanvasBounds.minY.toFixed(2) }}</div>
     <div>下边界: {{ canvasStore.visibleAreaInCanvasBounds.maxY.toFixed(2) }}</div>
+    <div v-if="canvasStore.currentPreloadBounds">临时的边界:{{canvasStore.currentPreloadBounds.minX}},{{canvasStore.currentPreloadBounds.maxX}},{{canvasStore.currentPreloadBounds.minY}},{{canvasStore.currentPreloadBounds.maxY}}</div>
+    <div>组件数量: {{ canvasStore.componentCount}}，视图范围内组件数量{{canvasStore.visibleTitleIds.length+canvasStore.visibleMarkdownIds.length}}</div>
+
   </div>
 </template>
 

@@ -8,6 +8,7 @@
       fontSize: '24px',
       position: 'absolute',}"
       @mousedown.stop
+      v-if="canvasStore.visibleTitleIds.includes(id)"
   >
     <!-- 可编辑的输入框，失去焦点时更新内容 -->
     <input
@@ -22,7 +23,8 @@
 
 <script setup>
 import {defineEmits, defineProps, nextTick, onMounted, ref} from 'vue'
-
+import {useCanvasStore} from "@/stores/canvasStore.js";
+const canvasStore = useCanvasStore()
 // 接收从父组件传来的属性
 const props = defineProps({
   // 标题的唯一标识
@@ -55,6 +57,7 @@ const currentContent = ref(props.content)
 
 // 输入框引用，用于聚焦
 const titleInput = ref(null)
+
 
 // 当组件挂载后自动聚焦
 onMounted(() => {

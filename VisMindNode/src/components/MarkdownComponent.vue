@@ -13,6 +13,7 @@
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
     }"
       @mousedown.stop
+      v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
     <div class="markdown-toolbar">
       <button @click="toggleEdit">{{ isEditing ? '预览' : '编辑' }}</button>
@@ -37,7 +38,8 @@
 import { defineProps, defineEmits, ref, onMounted, nextTick, computed } from 'vue'
 import {marked} from 'marked'
 import 'github-markdown-css'
-
+import {useCanvasStore} from "@/stores/canvasStore.js";
+const canvasStore = useCanvasStore()
 const props = defineProps({
   id: { type: String, required: true },
   x: { type: Number, required: true },
