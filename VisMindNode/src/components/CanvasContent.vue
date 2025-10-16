@@ -72,7 +72,7 @@ const handleDblClick = (e) => {
 <style scoped>
 .infinite-canvas {
   min-width: 1000000px;
-  min-height: 1000000px;
+  min-height:1000000px;
   border: 1px solid #ccc; /* 加个边框，更明显 */
   background-color: #fff;
   background-image: linear-gradient(#eee 1px, transparent 1px),

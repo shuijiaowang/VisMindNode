@@ -11,36 +11,48 @@ export const useCanvasStore = defineStore('canvas', () => {
 
     // 缩放比例（后续会用到，先定义）
     const scale = ref(1)  // 1=原大小，2=放大2倍，0.5=缩小一半
+    //找到「窗口正中心」这个点，对应到「巨大画布」上的具体位置（画布自己的坐标系里的坐标），这个坐标将来会用来放新元素。
+    const windowCenterInCanvas  = computed(() => {
+        const canvas = document.querySelector('.infinite-canvas');
+        const canvasWidth = canvas?.offsetWidth
+        const canvasHeight = canvas?.offsetHeight
 
-    // 视图中心坐标（根据偏移量和缩放计算得出）
-    const viewCenter = computed(() => {
-        // 获取画布容器尺寸
-        const container = document.querySelector('.canvas-container')
-        const containerWidth = container?.offsetWidth || window.innerWidth
-        const containerHeight = container?.offsetHeight || window.innerHeight
+        const canvasCenterX = canvasWidth / 2; // 画布自身中心X（固定逻辑值）
+        const canvasCenterY = canvasHeight / 2; // 画布自身中心Y（固定逻辑值）
 
-        // 计算视图中心对应的画布坐标
+        // 核心修正：偏移量需除以缩放比例（因为缩放会放大偏移的视觉效果）
         return {
-            x: (containerWidth / 2 - offsetX.value) / scale.value,
-            y: (containerHeight / 2 - offsetY.value) / scale.value
-        }
-    })
+            x: canvasCenterX - (offsetX.value / scale.value), // 关键修正：offsetX先除以scale
+            y: canvasCenterY - (offsetY.value / scale.value)
+        };
+    });
     // 可视区域边界（用于局部渲染）
-    const viewBounds = computed(() => {
-        // 获取画布容器尺寸
-        const container = document.querySelector('.canvas-container')
-        const containerWidth = container?.offsetWidth || window.innerWidth
-        const containerHeight = container?.offsetHeight || window.innerHeight
+    const visibleAreaInCanvasBounds = computed(() => {
+        // 1. 获取画布自身尺寸（用于计算画布中心）
+        const canvas = document.querySelector('.infinite-canvas');
+        const canvasWidth = canvas?.offsetWidth
+        const canvasHeight = canvas?.offsetHeight
+        const canvasCenterX = canvasWidth / 2;
+        const canvasCenterY = canvasHeight / 2;
 
-        // 计算可视区域边界对应的画布坐标
+        // 2. 获取容器（可视窗口）尺寸
+        const container = document.querySelector('.canvas-view-wrapper');
+        const containerWidth = container?.offsetWidth || window.innerWidth;
+        const containerHeight = container?.offsetHeight || window.innerHeight;
+
+        // 3. 计算容器可视区域在画布逻辑坐标中的边界
+        // 逻辑：容器中心与画布中心对齐（初始状态），容器的一半宽/高在逻辑坐标中为 (containerWidth/2)/scale
         return {
-            minX: (-offsetX.value) / scale.value,
-            maxX: (containerWidth - offsetX.value) / scale.value,
-            minY: (-offsetY.value) / scale.value,
-            maxY: (containerHeight - offsetY.value) / scale.value
-        }
-    })
-
+            // 左边界 = 画布中心 - 容器半宽（逻辑值） - 偏移量（逻辑值）
+            minX: canvasCenterX - (containerWidth / 2 / scale.value) - (offsetX.value / scale.value),
+            // 右边界 = 画布中心 + 容器半宽（逻辑值） - 偏移量（逻辑值）
+            maxX: canvasCenterX + (containerWidth / 2 / scale.value) - (offsetX.value / scale.value),
+            // 上边界 = 画布中心 - 容器半高（逻辑值） - 偏移量（逻辑值）
+            minY: canvasCenterY - (containerHeight / 2 / scale.value) - (offsetY.value / scale.value),
+            // 下边界 = 画布中心 + 容器半高（逻辑值） - 偏移量（逻辑值）
+            maxY: canvasCenterY + (containerHeight / 2 / scale.value) - (offsetY.value / scale.value)
+        };
+    });
 
 
 
@@ -172,7 +184,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         const centerX = canvasWidth / 2;
         const centerY = canvasHeight / 2;
 
-        const r=100000
+        const r=10000
         // 生成500个标题组件（中心附近±1500px范围）
         for (let i = 0; i < 500; i++) {
             // 在中心坐标基础上生成±1500px的随机偏移
@@ -204,8 +216,8 @@ export const useCanvasStore = defineStore('canvas', () => {
         offsetX,
         offsetY,
         scale,
-        viewCenter,
-        viewBounds,
+        windowCenterInCanvas,
+        visibleAreaInCanvasBounds,
         titles,
         createTitle,
         updateTitleContent,

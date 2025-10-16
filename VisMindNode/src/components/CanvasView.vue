@@ -1,6 +1,6 @@
 <template>
   <!-- 最外层容器：负责监听拖拽事件和提供视图区域 -->
-  <div class="canvas-container"
+  <div class="canvas-view-wrapper"
        @mousedown="startDrag"
        @mousemove="onDrag"
        @mouseup="endDrag"
@@ -29,12 +29,12 @@
     <div>偏移X: {{ canvasStore.offsetX.toFixed(2) }}px</div>
     <div>偏移Y: {{ canvasStore.offsetY.toFixed(2) }}px</div>
     <div>缩放: {{ (canvasStore.scale * 100).toFixed(0) }}%</div>
-    <div>视图中心X: {{ canvasStore.viewCenter.x.toFixed(2) }}</div>
-    <div>视图中心Y: {{ canvasStore.viewCenter.y.toFixed(2) }}</div>
-    <div>左边界: {{ canvasStore.viewBounds.minX.toFixed(2) }}</div>
-    <div>右边界: {{ canvasStore.viewBounds.maxX.toFixed(2) }}</div>
-    <div>上边界: {{ canvasStore.viewBounds.minY.toFixed(2) }}</div>
-    <div>下边界: {{ canvasStore.viewBounds.maxY.toFixed(2) }}</div>
+    <div>视图中心X: {{ canvasStore.windowCenterInCanvas.x.toFixed(2) }}</div>
+    <div>视图中心Y: {{ canvasStore.windowCenterInCanvas.y.toFixed(2) }}</div>
+    <div>左边界: {{ canvasStore.visibleAreaInCanvasBounds.minX.toFixed(2) }}</div>
+    <div>右边界: {{ canvasStore.visibleAreaInCanvasBounds.maxX.toFixed(2) }}</div>
+    <div>上边界: {{ canvasStore.visibleAreaInCanvasBounds.minY.toFixed(2) }}</div>
+    <div>下边界: {{ canvasStore.visibleAreaInCanvasBounds.maxY.toFixed(2) }}</div>
   </div>
 </template>
 
@@ -129,17 +129,12 @@ function resetView() {
 
 // 新增方法
 const createNewTitle = () => {
-  // 在视图中心创建标题
-  const centerX = window.innerWidth / 2 - offsetX.value
-  const centerY = window.innerHeight / 2 - offsetY.value
-  canvasStore.createTitle(centerX, centerY)
+  canvasStore.createTitle(canvasStore.windowCenterInCanvas.x, canvasStore.windowCenterInCanvas.y)
 }
 
 const createNewMarkdown = () => {
   // 在视图中心创建markdown
-  const centerX = window.innerWidth / 2 - offsetX.value
-  const centerY = window.innerHeight / 2 - offsetY.value
-  canvasStore.createMarkdown(centerX, centerY)
+  canvasStore.createMarkdown(canvasStore.windowCenterInCanvas.x, canvasStore.windowCenterInCanvas.y)
 }
 
 // 删除所有数据
@@ -154,7 +149,7 @@ function clearAllData() {
 
 <style scoped>
 /* 最外层容器：占满整个浏览器窗口 */
-.canvas-container {
+.canvas-view-wrapper {
   width: 100vw; /* 宽度=屏幕宽度 */
   height: 100vh; /* 高度=屏幕高度 */
   background-color: lightskyblue; /* 浅灰色背景，一眼就能看到 */
@@ -167,7 +162,7 @@ function clearAllData() {
 }
 
 /* 拖拽时的鼠标样式 */
-.canvas-container:active {
+.canvas-view-wrapper:active {
   cursor: grabbing; /* 拖拽中手势 */
 }
 

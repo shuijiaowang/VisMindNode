@@ -42,14 +42,14 @@ const elementExample = {
  * @property {number} offsetX - 画布X轴偏移量
  * @property {number} offsetY - 画布Y轴偏移量
  * @property {number} scale - 缩放比例（0.1~5）
- * @property {Object} viewCenter - 当前视图中心对应的画布坐标
- * @property {number} viewCenter.x
- * @property {number} viewCenter.y
- * @property {Object} viewBounds - 可视区域边界（用于局部渲染）
- * @property {number} viewBounds.minX - 左边界
- * @property {number} viewBounds.maxX - 右边界
- * @property {number} viewBounds.minY - 上边界
- * @property {number} viewBounds.maxY - 下边界
+ * @property {Object} windowCenterInCanvas - 基于画布坐标，窗口正中心在画布中的坐标
+ * @property {number} windowCenterInCanvas.x
+ * @property {number} windowCenterInCanvas.y
+ * @property {Object} visibleAreaInCanvasBounds -
+ * @property {number} visibleAreaInCanvasBounds.minX - 左边界
+ * @property {number} visibleAreaInCanvasBounds.maxX - 右边界
+ * @property {number} visibleAreaInCanvasBounds.minY - 上边界
+ * @property {number} visibleAreaInCanvasBounds.maxY - 下边界
  * @property {Map<string, Element>} elMap - 元素ID到元素的映射（Map结构）
  * @property {string[]} rootIds - 顶级元素ID数组（parentId为null）
  * @property {string[]} selectedElementIds - 当前选中的元素ID集合
