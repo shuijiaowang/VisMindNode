@@ -6,9 +6,8 @@
       left: `${x}px`,  // 基于画布的X坐标
       top: `${y}px`,   // 基于画布的Y坐标
       fontSize: '24px',
-      position: 'absolute',
-      transform: 'translate(-50%, -50%)'  // 新增：让元素中心对准(x,y)
-    }"
+      position: 'absolute',}"
+      @mousedown.stop
   >
     <!-- 可编辑的输入框，失去焦点时更新内容 -->
     <input
@@ -16,13 +15,13 @@
         type="text"
         @blur="handleBlur"
         ref="titleInput"
-    class="title-input"
+        class="title-input"
     >
   </div>
 </template>
 
 <script setup>
-import {ref, onMounted, defineProps, defineEmits, nextTick} from 'vue'
+import {defineEmits, defineProps, nextTick, onMounted, ref} from 'vue'
 
 // 接收从父组件传来的属性
 const props = defineProps({

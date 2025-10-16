@@ -15,10 +15,26 @@
     />
   </div>
   <div class="toolbar">
+    <button @click="createNewTitle">新建标题</button>
+    <button @click="createNewMarkdown">新建文档</button>
     <button @click="resetView">重置视图</button>
+    <button @click="clearAllData">删除所有数据</button>
+    <button @click="canvasStore.generateTestComponents()">压力测试</button>
     <button @click="zoomIn">放大</button>
     <button @click="zoomOut">缩小</button>
     <span class="zoom-level">{{ (scale * 100).toFixed(0) }}%</span>
+  </div>
+  <!-- 数据看板 -->
+  <div class="log">
+    <div>偏移X: {{ canvasStore.offsetX.toFixed(2) }}px</div>
+    <div>偏移Y: {{ canvasStore.offsetY.toFixed(2) }}px</div>
+    <div>缩放: {{ (canvasStore.scale * 100).toFixed(0) }}%</div>
+    <div>视图中心X: {{ canvasStore.viewCenter.x.toFixed(2) }}</div>
+    <div>视图中心Y: {{ canvasStore.viewCenter.y.toFixed(2) }}</div>
+    <div>左边界: {{ canvasStore.viewBounds.minX.toFixed(2) }}</div>
+    <div>右边界: {{ canvasStore.viewBounds.maxX.toFixed(2) }}</div>
+    <div>上边界: {{ canvasStore.viewBounds.minY.toFixed(2) }}</div>
+    <div>下边界: {{ canvasStore.viewBounds.maxY.toFixed(2) }}</div>
   </div>
 </template>
 
@@ -43,7 +59,6 @@ function startDrag(e) {
   // 记录初始位置（减去当前偏移量，避免拖拽起点跳变）
   startPos.value.x = e.clientX - offsetX.value
   startPos.value.y = e.clientY - offsetY.value
-
 }
 
 // 鼠标移动：更新偏移量（实现拖拽）
@@ -111,6 +126,30 @@ function resetView() {
   offsetY.value = 0
   scale.value = 1
 }
+
+// 新增方法
+const createNewTitle = () => {
+  // 在视图中心创建标题
+  const centerX = window.innerWidth / 2 - offsetX.value
+  const centerY = window.innerHeight / 2 - offsetY.value
+  canvasStore.createTitle(centerX, centerY)
+}
+
+const createNewMarkdown = () => {
+  // 在视图中心创建markdown
+  const centerX = window.innerWidth / 2 - offsetX.value
+  const centerY = window.innerHeight / 2 - offsetY.value
+  canvasStore.createMarkdown(centerX, centerY)
+}
+
+// 删除所有数据
+function clearAllData() {
+  canvasStore.clearAllData()
+}
+
+ function showLog() {
+  console.log(canvasStore.components)
+}
 </script>
 
 <style scoped>
@@ -118,7 +157,7 @@ function resetView() {
 .canvas-container {
   width: 100vw; /* 宽度=屏幕宽度 */
   height: 100vh; /* 高度=屏幕高度 */
-  background-color: blue; /* 浅灰色背景，一眼就能看到 */
+  background-color: lightskyblue; /* 浅灰色背景，一眼就能看到 */
   overflow: hidden; /* 超出部分隐藏（以后平移会用到，先加上） */
   position: relative; /* 必须加这个，否则内部画布的位置会乱掉 */
   cursor: grab; /* 鼠标放上去显示“可抓取”的图标 */
@@ -165,5 +204,23 @@ function resetView() {
 .zoom-level {
   align-self: center;
   color: #666;
+}
+/* 数据看板样式 */
+.log {
+  position: fixed;
+  top: 10px; /* 位于工具栏上方 */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap; /* 允许换行，避免内容溢出 */
+  gap: 15px;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-width: 90vw; /* 限制最大宽度，避免超出屏幕 */
+  font-size: 12px;
+  color: #333;
 }
 </style>

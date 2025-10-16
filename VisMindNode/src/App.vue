@@ -1,6 +1,7 @@
 <script setup>
 
 import CanvasView from "@/components/CanvasView.vue";
+
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 // src/stores/canvasStore.js （新建这个文件，专门管理画布状态）
-import {reactive, ref} from 'vue'
+import {computed, reactive, ref, watch} from 'vue'
 import { defineStore } from 'pinia'
 import { v4 as uuidv4 } from 'uuid'  // 这里的 v4 是 uuid 的一种生成算法
 
@@ -12,7 +12,51 @@ export const useCanvasStore = defineStore('canvas', () => {
     // 缩放比例（后续会用到，先定义）
     const scale = ref(1)  // 1=原大小，2=放大2倍，0.5=缩小一半
 
-    const titles=reactive([])
+    // 视图中心坐标（根据偏移量和缩放计算得出）
+    const viewCenter = computed(() => {
+        // 获取画布容器尺寸
+        const container = document.querySelector('.canvas-container')
+        const containerWidth = container?.offsetWidth || window.innerWidth
+        const containerHeight = container?.offsetHeight || window.innerHeight
+
+        // 计算视图中心对应的画布坐标
+        return {
+            x: (containerWidth / 2 - offsetX.value) / scale.value,
+            y: (containerHeight / 2 - offsetY.value) / scale.value
+        }
+    })
+    // 可视区域边界（用于局部渲染）
+    const viewBounds = computed(() => {
+        // 获取画布容器尺寸
+        const container = document.querySelector('.canvas-container')
+        const containerWidth = container?.offsetWidth || window.innerWidth
+        const containerHeight = container?.offsetHeight || window.innerHeight
+
+        // 计算可视区域边界对应的画布坐标
+        return {
+            minX: (-offsetX.value) / scale.value,
+            maxX: (containerWidth - offsetX.value) / scale.value,
+            minY: (-offsetY.value) / scale.value,
+            maxY: (containerHeight - offsetY.value) / scale.value
+        }
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const titles=reactive([]) //标题组件
+    const markdowns = reactive([])//markdown组件
 
     const createTitle=(x, y) =>{
         // 生成唯一ID
@@ -34,12 +78,142 @@ export const useCanvasStore = defineStore('canvas', () => {
             title.content = content
         }
     }
+
+    const createMarkdown = (x, y) => {
+        const id = uuidv4()
+        markdowns.push({
+            id,
+            x,
+            y,
+            content: '# 新文档\n\n这是一个markdown文档'  // 默认内容
+        })
+        return markdowns.find(item => item.id === id)
+    }
+    // 新增：更新markdown内容
+    const updateMarkdownContent = (id, content) => {
+        const markdown = markdowns.find(item => item.id === id)
+        if (markdown) {
+            markdown.content = content
+        }
+    }
+    // 修改保存逻辑（添加markdowns）
+    const saveToLocalStorage = () => {
+        const data = {
+            titles: [...titles],
+            markdowns: [...markdowns],  // 新增
+            offsetX: offsetX.value,
+            offsetY: offsetY.value,
+            scale: scale.value
+        }
+        localStorage.setItem('canvasState', JSON.stringify(data))
+    }
+    // 新增：清空所有数据的函数（用于测试）
+    const clearAllData = () => {
+        // 清空组件数组
+        titles.length = 0
+        markdowns.length = 0
+
+        // 重置视图状态
+        offsetX.value = 0
+        offsetY.value = 0
+        scale.value = 1
+
+        // 清除本地存储
+        localStorage.removeItem('canvasState')
+    }
+    // 修改加载逻辑（添加markdowns）
+    const loadFromLocalStorage = () => {
+        const savedData = localStorage.getItem('canvasState')
+        if (savedData) {
+            try {
+                const {
+                    titles: savedTitles,
+                    markdowns: savedMarkdowns,  // 新增
+                    offsetX: savedX,
+                    offsetY: savedY,
+                    scale: savedScale
+                } = JSON.parse(savedData)
+
+                // 恢复标题数据
+                titles.length = 0
+                savedTitles.forEach(title => titles.push(title))
+
+                // 新增：恢复markdown数据
+                markdowns.length = 0
+                savedMarkdowns?.forEach(markdown => markdowns.push(markdown))
+
+                // 恢复视图状态
+                offsetX.value = savedX
+                offsetY.value = savedY
+                scale.value = savedScale
+            } catch (error) {
+                console.error('加载保存的数据失败:', error)
+                localStorage.removeItem('canvasState')
+            }
+        }
+    }
+
+    // 新增：生成随机测试组件的方法
+    const generateTestComponents = () => {
+        // 清空现有组件
+        // titles.length = 0
+        // markdowns.length = 0
+
+        const canvasEl = document.querySelector('.infinite-canvas');
+        if (!canvasEl) {
+            console.error('未找到画布元素，无法生成测试组件');
+            return;
+        }
+        // 获取画布实际宽高（考虑到min-width/min-height的设置）
+        const canvasWidth = canvasEl.offsetWidth;
+        const canvasHeight = canvasEl.offsetHeight;
+
+        // 计算画布中心坐标（基于画布左上角原点）
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+
+        const r=100000
+        // 生成500个标题组件（中心附近±1500px范围）
+        for (let i = 0; i < 500; i++) {
+            // 在中心坐标基础上生成±1500px的随机偏移
+            const x = centerX + (Math.random() * r - r/2);
+            const y = centerY + (Math.random() * r - r/2);
+            createTitle(x, y).content = `测试标题 ${i + 1}`;
+        }
+
+        // 生成500个markdown组件（同上范围）
+        for (let i = 0; i < 500; i++) {
+            const x = centerX + (Math.random() * r - r/2);
+            const y = centerY + (Math.random() * r - r/2);
+            createMarkdown(x, y).content = `# 测试文档 ${i + 1}\n\n这是第${i + 1}个测试markdown文档`;
+        }
+
+        console.log('生成测试数据完成,当前：',titles.length,markdowns.length)
+        // 保存生成的测试数据
+        saveToLocalStorage()
+    }
+
+// 监听数据变化，自动保存
+    watch([offsetX, offsetY, scale], saveToLocalStorage)
+    watch(titles, saveToLocalStorage, { deep: true })  // 深度监听数组变化
+    watch(markdowns, saveToLocalStorage, { deep: true })  // 新增
+
+    // 初始化时加载数据
+    loadFromLocalStorage()
     return {
         offsetX,
         offsetY,
         scale,
+        viewCenter,
+        viewBounds,
         titles,
         createTitle,
-        updateTitleContent
+        updateTitleContent,
+        saveToLocalStorage,  // 暴露保存方法（可选）
+        markdowns,
+        createMarkdown,
+        updateMarkdownContent,
+        clearAllData,
+        generateTestComponents
     }
 })
