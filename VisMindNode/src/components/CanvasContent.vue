@@ -3,7 +3,7 @@
   <div class="infinite-canvas"
        :style="{
          transform: `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-         transformOrigin: 'center center'
+
        }"
        @dblclick="handleDblClick"
   >
@@ -12,24 +12,25 @@
     <div class="origin-marker">原点(0,0)</div>
     <!-- 未来可添加更多画布元素 -->
     <TitleComponent
-        v-for="title in canvasStore?.titles"
-        :key="title.id"
-        :id="title.id"
-        :x="title.x"
-        :y="title.y"
-        :content="title.content"
-        @update:content="(content) => canvasStore.updateTitleContent(title.id, content)"
+        v-for="id in canvasStore.visibleTitleIds"
+        :key="id"
+        :id="id"
+        :x="canvasStore.titles.find(t => t.id === id).x"
+        :y="canvasStore.titles.find(t => t.id === id).y"
+        :content="canvasStore.titles.find(t => t.id === id).content"
+        @update:content="(content) => canvasStore.updateTitleContent(id, content)"
     />
     <!-- 新增：Markdown组件 -->
     <MarkdownComponent
-        v-for="markdown in canvasStore.markdowns"
-        :key="markdown.id"
-        :id="markdown.id"
-        :x="markdown.x"
-        :y="markdown.y"
-        :content="markdown.content"
-        @update:content="(content) => canvasStore.updateMarkdownContent(markdown.id, content)"
+        v-for="id in canvasStore.visibleMarkdownIds"
+        :key="id"
+        :id="id"
+        :x="canvasStore.markdowns.find(m => m.id === id).x"
+        :y="canvasStore.markdowns.find(m => m.id === id).y"
+        :content="canvasStore.markdowns.find(m => m.id === id).content"
+        @update:content="(content) => canvasStore.updateMarkdownContent(id, content)"
     />
+<!--    当前是数组，遍历性能低？-->
   </div>
 </template>
 
@@ -71,8 +72,8 @@ const handleDblClick = (e) => {
 
 <style scoped>
 .infinite-canvas {
-  min-width: 1000000px;
-  min-height:1000000px;
+  min-width: 1000px;
+  min-height: 1000px;
   border: 1px solid #ccc; /* 加个边框，更明显 */
   background-color: #fff;
   background-image: linear-gradient(#eee 1px, transparent 1px),

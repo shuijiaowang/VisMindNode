@@ -35,7 +35,7 @@
     <div>右边界: {{ canvasStore.visibleAreaInCanvasBounds.maxX.toFixed(2) }}</div>
     <div>上边界: {{ canvasStore.visibleAreaInCanvasBounds.minY.toFixed(2) }}</div>
     <div>下边界: {{ canvasStore.visibleAreaInCanvasBounds.maxY.toFixed(2) }}</div>
-    <div v-if="canvasStore.currentPreloadBounds">临时的边界:{{canvasStore.currentPreloadBounds.minX}},{{canvasStore.currentPreloadBounds.maxX}},{{canvasStore.currentPreloadBounds.minY}},{{canvasStore.currentPreloadBounds.maxY}}</div>
+    <div v-if="canvasStore.preloadAreaInCanvasBounds">临时的边界:{{canvasStore.preloadAreaInCanvasBounds.minX}},{{canvasStore.preloadAreaInCanvasBounds.maxX}},{{canvasStore.preloadAreaInCanvasBounds.minY}},{{canvasStore.preloadAreaInCanvasBounds.maxY}}</div>
     <div>组件数量: {{ canvasStore.componentCount}}，视图范围内组件数量{{canvasStore.visibleTitleIds.length+canvasStore.visibleMarkdownIds.length}}</div>
 
   </div>
@@ -43,7 +43,7 @@
 
 <script setup>
 // 导入必要的工具
-import {ref, toRefs} from 'vue'
+import {nextTick, ref, toRefs} from 'vue'
 import { useCanvasStore } from '@/stores/canvasStore'
 import CanvasContent from "@/components/CanvasContent.vue";
 
@@ -53,6 +53,7 @@ const { offsetX, offsetY, scale } =toRefs(canvasStore)  //你确定这是响应�
 
 // 拖拽状态管理
 const isDragging = ref(false) // 是否正在拖拽
+let dragX = 0, dragY = 0
 const startPos = ref({ x: 0, y: 0 }) // 记录鼠标刚按下时的位置（用来计算移动了多少距离）
 
 // 鼠标按下：开始拖拽
@@ -68,8 +69,17 @@ function startDrag(e) {
 function onDrag(e) {
   if (!isDragging.value) return // 非拖拽状态不处理
   // 计算新的偏移量（当前鼠标位置 - 初始位置）
-  offsetX.value = e.clientX - startPos.value.x
-  offsetY.value = e.clientY - startPos.value.y
+  // 只记录位置变化，不直接更新状态
+  dragX = e.clientX - startPos.value.x
+  dragY = e.clientY - startPos.value.y
+  // offsetX.value = e.clientX - startPos.value.x
+  // offsetY.value = e.clientY - startPos.value.y
+  // 请求下一帧更新
+  requestAnimationFrame(updatePosition)
+}
+function updatePosition() {
+  offsetX.value = dragX
+  offsetY.value = dragY
 }
 
 // 鼠标松开/离开：结束拖拽
@@ -124,10 +134,25 @@ function zoomOut() {
 }
 
 // 重置视图（回到初始位置和缩放）
-function resetView() {
+// 完善重置逻辑
+const resetView = async () => {
+  // 重置基础状态
   offsetX.value = 0
   offsetY.value = 0
   scale.value = 1
+
+  // 等待DOM更新完成
+  await nextTick()
+
+  // 强制更新尺寸缓存
+  updateElementSizes()
+
+  // 重新计算所有衍生状态
+  calculateVisibleArea()
+
+  // 重置预加载区域
+  preloadAreaInCanvasBounds.value = null
+  calculateVisibleArea() // 触发初始化
 }
 
 // 新增方法

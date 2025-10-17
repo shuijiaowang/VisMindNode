@@ -73,7 +73,7 @@ const handleBlur = () => {
 
 // 组件挂载时聚焦编辑器
 onMounted(() => {
-  nextTick(() => editorRef.value?.focus())
+  // nextTick(() => editorRef.value?.focus())
 })
 </script>
 

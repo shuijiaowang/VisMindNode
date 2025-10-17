@@ -62,11 +62,11 @@ const titleInput = ref(null)
 // 当组件挂载后自动聚焦
 onMounted(() => {
   // 确保DOM已渲染，再执行聚焦
-  nextTick(() => {
-    if (titleInput.value) {
-      titleInput.value.focus()
-    }
-  })
+  // nextTick(() => {
+  //   if (titleInput.value) {
+  //     titleInput.value.focus()
+  //   }
+  // })
 })
 
 // 失去焦点时更新内容
