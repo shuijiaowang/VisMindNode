@@ -12,12 +12,14 @@
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         cursor: isDragging ? 'grabbing' : 'grab'
     }"
+      :class="{ 'selected': isSelected }"
+      @click.stop="handleClick"
       @mousedown.stop
       @mousedown="startDrag"
       v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
-    <div class="markdown-toolbar">
-      <button @click="toggleEdit">{{ isEditing ? '预览' : '编辑' }}</button>
+    <div class="markdown-toolbar" >
+      <button @click.stop="toggleEdit">{{ isEditing ? '预览' : '编辑' }}</button>
     </div>
 
     <div v-if="isEditing" class="editor-container">
@@ -56,7 +58,7 @@ const props = defineProps({
   }
 })
 // 初始化拖拽逻辑（指定组件类型为markdown）
-const { isDragging, startDrag } = useDraggable(
+const { isDragging, startDrag,isDragEvent } = useDraggable(
     'markdown',
     props.id,
     props.x,
@@ -81,7 +83,19 @@ const toggleEdit = () => {
     nextTick(() => editorRef.value?.focus())
   }
 }
+const isSelected = computed(() => {
+  // 确保 store 中存在 selectedElementIds 且是 Set 类型
+  return canvasStore.selectedElementIds?.has(props.id) || false;
+});
+const handleClick = (e) => {
+  // 新增：如果是拖拽事件，不处理选中逻辑
+  console.log("为什么点击失效没反应，子元素是点击了有反应，但是没有冒泡传上去？,卧槽isDragEvent.value为什么是true？？", isDragEvent.value)
 
+  // if (isDragEvent.value) return
+  console.log("为什么点击失效没反应，子元素是点击了有反应，但是没有冒泡传上去？")
+  canvasStore.toggleElementSelection(props.id, e.ctrlKey || e.metaKey);
+  console.log('selectedElementIds', canvasStore.selectedElementIds)
+};
 // 失去焦点时更新内容
 const handleBlur = () => {
   emit('update:content', currentContent.value)
@@ -129,5 +143,9 @@ onMounted(() => {
   max-width: 980px;
   margin: 0 auto;
   padding: 45px;
+}
+.markdown-component.selected {
+  outline: 2px solid #42b983;
+  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.3);
 }
 </style>

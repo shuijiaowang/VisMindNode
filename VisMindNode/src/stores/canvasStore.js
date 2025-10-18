@@ -403,7 +403,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     //     }
     // }
 
-    //确实快了很多
+    //这样确实快了很多，但还是会卡顿
     const updateTitlePosition = (id, x, y) => {
         const title = titles.get(id)
         if (!title) return
@@ -427,6 +427,79 @@ export const useCanvasStore = defineStore('canvas', () => {
         // 因为 reactive(Map) 会监听 set 操作，而直接改属性（markdown.x）可能不触发
         markdowns.set(id, markdown)
     }
+
+
+    //------------批量-----------
+    const selectedElementIds = ref(new Set()) // 存储选中的组件ID
+    //查看位置
+    // 获取组件位置
+    const getComponentPosition = (id) => {
+        // 先从标题中查找
+        if (titles.has(id)) {
+            const title = titles.get(id)
+            return { x: title.x, y: title.y }
+        }
+
+        // 再从markdown中查找
+        if (markdowns.has(id)) {
+            const markdown = markdowns.get(id)
+            return { x: markdown.x, y: markdown.y }
+        }
+
+        // 未找到返回默认位置
+        return { x: 0, y: 0 }
+    }
+    const updateComponentPosition = (id, newX, newY) => {
+        // 更新标题位置
+        if (titles.has(id)) {
+            const title = titles.get(id);
+            if (!title) return false;
+
+            title.x = newX;
+            title.y = newY;
+
+            // 触发 reactive(Map) 的更新
+            titles.set(id, title);
+            return true;
+        }
+
+        // 更新markdown位置
+        if (markdowns.has(id)) {
+            const markdown = markdowns.get(id);
+            if (!markdown) return false;
+
+            markdown.x = newX;
+            markdown.y = newY;
+
+            // 关键：用 set 重新赋值，触发 reactive 的响应式更新
+            markdowns.set(id, markdown);
+            return true;
+        }
+
+        // 未找到返回false
+        return false;
+    }
+
+    const toggleElementSelection = (id, isCtrlPressed) => {
+        if (isCtrlPressed) {
+            // Ctrl+点击：切换选中状态
+            if (selectedElementIds.value.has(id)) {
+                selectedElementIds.value.delete(id);
+            } else {
+                selectedElementIds.value.add(id);
+            }
+        } else {
+            // 普通点击：替换选中状态
+            selectedElementIds.value.clear();
+            selectedElementIds.value.add(id);
+        }
+    };
+
+    const clearAllSelections = () => {
+        selectedElementIds.value.clear();
+    };
+
+
 
 // 监听数据变化，自动保存
     watch([offsetX, offsetY, scale], saveToLocalStorage)
@@ -461,5 +534,10 @@ export const useCanvasStore = defineStore('canvas', () => {
         resetCanvasView, // 重置画布视图
         updateMarkdownPosition,
         updateTitlePosition,
+        getComponentPosition,
+        updateComponentPosition,
+        selectedElementIds,
+        toggleElementSelection,
+        clearAllSelections,
     }
 })

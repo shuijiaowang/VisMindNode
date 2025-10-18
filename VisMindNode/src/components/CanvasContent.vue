@@ -6,6 +6,7 @@
 
        }"
        @dblclick="handleDblClick"
+       @click="handleCanvasClick"
   >
     这是画布区域（可拖拽移动）
     <!-- 临时标记逻辑原点(0,0)位置 -->
@@ -68,6 +69,12 @@ const handleDblClick = (e) => {
     canvasStore.createMarkdown(e.offsetX, e.offsetY);
   } else {  // 普通双击创建标题
     canvasStore.createTitle(e.offsetX, e.offsetY);
+  }
+};
+const handleCanvasClick = (e) => {
+  // 只有点击画布空白区域才取消选中
+  if (e.target === e.currentTarget) {
+    canvasStore.clearAllSelections();
   }
 };
 </script>

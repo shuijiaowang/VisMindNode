@@ -10,11 +10,10 @@
         position: 'absolute',
         cursor: isDragging ? 'grabbing' : 'grab'
       }"
+      :class="{ 'selected': isSelected }"
+      @click.stop="handleClick"
       @mousedown.stop
       @mousedown="startDrag"
-      @mousemove="onDrag"
-      @mouseup="endDrag"
-      @mouseleave="endDrag"
       v-if="canvasStore.visibleTitleIds.includes(id)"
 
   >
@@ -71,6 +70,9 @@ const props = defineProps({
     default: () => ({}) // 默认空对象
   }
 })
+const handleClick = (e) => {
+  canvasStore.toggleElementSelection(props.id, e.ctrlKey || e.metaKey);
+};
 
 // 定义要触发的事件
 const emit = defineEmits(['update:content'])
@@ -153,5 +155,9 @@ const handleBlur = () => {
 .title-input:focus {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 2px;
+}
+.title-component.selected {
+  outline: 2px solid #42b983; /* Vue品牌色作为选中高亮 */
+  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.3);
 }
 </style>
