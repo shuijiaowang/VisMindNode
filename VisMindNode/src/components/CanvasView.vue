@@ -5,7 +5,7 @@
        @mousemove="onDrag"
        @mouseup="endDrag"
        @mouseleave="endDrag"
-       @wheel="handleZoom"
+       @wheel.passive="handleZoom"
   >
     <!-- 无穷画布区域：基于逻辑原点定位，受偏移量控制 -->
     <CanvasContent
@@ -88,7 +88,7 @@ function endDrag() {
 }
 // 新增：处理鼠标滚轮缩放
 function handleZoom(e) {
-  e.preventDefault(); // 必须阻止默认行为，否则会影响拖拽
+  // e.preventDefault(); // 必须阻止默认行为，否则会影响拖拽
 
   const zoomSpeed = 0.1;
   let newScale = scale.value;

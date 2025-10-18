@@ -7,7 +7,7 @@
         top: `${y}px`,   // 基于画布的Y坐标
         fontSize: `${style.fontSize || 24}px`,
         color: style.color || '#333',
-         backgroundColor: style.backgroundColor || 'blue',
+         backgroundColor: style.backgroundColor || 'transparent',
         position: 'absolute',
         cursor: isDragging ? 'grabbing' : 'grab'
       }"
@@ -118,11 +118,9 @@ const handleBlur = () => {
 
 <style scoped>
 .title-component {
-  padding: 118px;
-  margin: 18px;
+  padding: 8px;
   border-radius: 4px;
   /*transition: all 0.2s; 会导致拖拽卡顿*/
-  border: 1px solid transparent;
 }
 .title-component:hover {
   border-color: #ddd;

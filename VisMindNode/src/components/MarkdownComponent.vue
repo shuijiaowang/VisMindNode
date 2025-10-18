@@ -31,7 +31,7 @@
           @blur="handleBlur"
           ref="editorRef"
           @mousedown.stop
-          @wheel.stop
+          @wheel.stop.passive="false"
       ></textarea>
     </div>
 
