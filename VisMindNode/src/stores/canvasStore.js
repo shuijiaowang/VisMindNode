@@ -345,6 +345,24 @@ export const useCanvasStore = defineStore('canvas', () => {
         recomputeVisibleArea();
     }
 
+    // 更新标题位置
+    const updateTitlePosition = (id, x, y) => {
+        const title = titles.find(item => item.id === id)
+        if (title) {
+            title.x = x
+            title.y = y
+        }
+    }
+
+// 更新Markdown位置
+    const updateMarkdownPosition = (id, x, y) => {
+        const markdown = markdowns.find(item => item.id === id)
+        if (markdown) {
+            markdown.x = x
+            markdown.y = y
+        }
+    }
+
 
 // 监听数据变化，自动保存
     watch([offsetX, offsetY, scale], saveToLocalStorage)
@@ -377,5 +395,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         visibleMarkdownIds, // 可见markdownIDs
         preloadAreaInCanvasBounds, // 预加载区域在画布中的边界
         resetCanvasView, // 重置画布视图
+        updateMarkdownPosition,
+        updateTitlePosition,
     }
 })

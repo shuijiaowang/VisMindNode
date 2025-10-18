@@ -2,17 +2,22 @@
   <div
       class="markdown-component"
       :style="{
-      left: `${x}px`,
-      top: `${y}px`,
-      position: 'absolute',
-      width: '400px',
-      minHeight: '300px',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        left: `${x}px`,
+        top: `${y}px`,
+        position: 'absolute',
+        width: '400px',
+        minHeight: '300px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        backgroundColor: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        cursor: isDragging ? 'grabbing' : 'grab'
     }"
       @mousedown.stop
+      @mousedown="startDrag"
+      @mousemove="onDrag"
+      @mouseup="endDrag"
+      @mouseleave="endDrag"
       v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
     <div class="markdown-toolbar">
@@ -25,6 +30,8 @@
           class="markdown-editor"
           @blur="handleBlur"
           ref="editorRef"
+          @mousedown.stop
+          @wheel.stop
       ></textarea>
     </div>
 
@@ -40,12 +47,25 @@ import {marked} from 'marked'
 import 'github-markdown-css'
 import {useCanvasStore} from "@/stores/canvasStore.js";
 const canvasStore = useCanvasStore()
+// 引入拖拽复用函数
+import { useDraggable } from '@/composables/useDraggable.js'
 const props = defineProps({
   id: { type: String, required: true },
   x: { type: Number, required: true },
   y: { type: Number, required: true },
-  content: { type: String, default: '' }
+  content: { type: String, default: '' },
+  style: {
+    type: Object,
+    default: () => ({}) // 默认空对象
+  }
 })
+// 初始化拖拽逻辑（指定组件类型为markdown）
+const { isDragging, startDrag, onDrag, endDrag } = useDraggable(
+    'markdown',
+    props.id,
+    props.x,
+    props.y
+)
 
 const emit = defineEmits(['update:content'])
 const isEditing = ref(true)  // 默认进入编辑模式

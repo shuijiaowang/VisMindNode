@@ -18,6 +18,7 @@
         :x="canvasStore.titles.find(t => t.id === id).x"
         :y="canvasStore.titles.find(t => t.id === id).y"
         :content="canvasStore.titles.find(t => t.id === id).content"
+        :style="canvasStore.titles.find(t => t.id === id).style"
         @update:content="(content) => canvasStore.updateTitleContent(id, content)"
     />
     <!-- 新增：Markdown组件 -->
@@ -28,6 +29,7 @@
         :x="canvasStore.markdowns.find(m => m.id === id).x"
         :y="canvasStore.markdowns.find(m => m.id === id).y"
         :content="canvasStore.markdowns.find(m => m.id === id).content"
+        :style="canvasStore.markdowns.find(t => t.id === id).style"
         @update:content="(content) => canvasStore.updateMarkdownContent(id, content)"
     />
 <!--    当前是数组，遍历性能低？-->
