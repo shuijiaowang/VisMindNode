@@ -3,8 +3,7 @@
   <div
       class="title-component"
       :style="{
-        left: `${x}px`,  // 基于画布的X坐标
-        top: `${y}px`,   // 基于画布的Y坐标
+        transform: `translate(${x}px, ${y}px)`,
         fontSize: `${style.fontSize || 24}px`,
         color: style.color || '#333',
          backgroundColor: style.backgroundColor || 'transparent',
@@ -40,11 +39,11 @@
 </template>
 
 <script setup>
-import {defineEmits, defineProps, nextTick, onMounted, ref} from 'vue'
+import {computed, defineEmits, defineProps, nextTick, onMounted, ref} from 'vue'
 import {useCanvasStore} from "@/stores/canvasStore.js";
 const canvasStore = useCanvasStore()
 import { useDraggable } from '@/composables/useDraggable.js'
-
+const title = computed(() => canvasStore.titles.get(props.id));
 // 接收从父组件传来的属性
 const props = defineProps({
   // 标题的唯一标识

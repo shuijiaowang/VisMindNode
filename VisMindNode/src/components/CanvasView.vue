@@ -218,7 +218,7 @@ function clearAllData() {
   background-color: #42b983;
   color: white;
   cursor: pointer;
-  transition: background-color 0.2s;
+  /*transition: background-color 0.2s;*/
 }
 .toolbar button:hover {
   background-color: #359e75;

@@ -2,8 +2,7 @@
   <div
       class="markdown-component"
       :style="{
-        left: `${x}px`,
-        top: `${y}px`,
+        transform: `translate(${x}px, ${y}px)`,
         position: 'absolute',
         width: '400px',
         minHeight: '300px',
@@ -15,9 +14,6 @@
     }"
       @mousedown.stop
       @mousedown="startDrag"
-      @mousemove="onDrag"
-      @mouseup="endDrag"
-      @mouseleave="endDrag"
       v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
     <div class="markdown-toolbar">
@@ -60,7 +56,7 @@ const props = defineProps({
   }
 })
 // 初始化拖拽逻辑（指定组件类型为markdown）
-const { isDragging, startDrag, onDrag, endDrag } = useDraggable(
+const { isDragging, startDrag } = useDraggable(
     'markdown',
     props.id,
     props.x,

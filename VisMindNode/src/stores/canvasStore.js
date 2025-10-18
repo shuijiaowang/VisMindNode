@@ -127,7 +127,7 @@ export const useCanvasStore = defineStore('canvas', () => {
             maxY: currentVisible.maxY + expandRange
         };
         console.log('每1分钟恢复默认边界', preloadAreaInCanvasBounds.value) //这个为什么是undefined
-    }, 60* 1000); // 60秒 = 60*1000毫秒
+    }, 10* 1000); // 60秒 = 60*1000毫秒
     //写一个判断，传入x,y,判断是否在可视区域内
     const isInVisibleArea = (x, y) => {
         // 先判断预加载区域是否已初始化，未初始化时直接返回 false（或根据业务需求返回默认值）
@@ -173,10 +173,15 @@ export const useCanvasStore = defineStore('canvas', () => {
 
     // 在canvasStore中添加可见组件ID计算
     const visibleTitleIds = computed(() => {
-        return titles.filter(title => isInVisibleArea(title.x, title.y)).map(title => title.id)
+        // 遍历Map的values，过滤可见元素，返回id数组
+        return Array.from(titles.values())
+            .filter(title => isInVisibleArea(title.x, title.y))
+            .map(title => title.id)
     })
     const visibleMarkdownIds = computed(() => {
-        return markdowns.filter(markdown => isInVisibleArea(markdown.x, markdown.y)).map(markdown => markdown.id)
+        return Array.from(markdowns.values())
+            .filter(markdown => isInVisibleArea(markdown.x, markdown.y))
+            .map(markdown => markdown.id)
     })
 
     // 3. 创建防抖函数（50ms内多次触发只执行一次）
@@ -189,106 +194,151 @@ export const useCanvasStore = defineStore('canvas', () => {
     }, {immediate: true}) // 初始化时立即计算一次
 
 
-    const titles = reactive([]) //标题组件
-    const markdowns = reactive([])//markdown组件
+    const titles = reactive(new Map()) // key: id, value: 标题组件对象
+    const markdowns = reactive(new Map()) // key: id, value: markdown组件对象
 
     //统计组件数量
-    const componentCount = computed(() => titles.length + markdowns.length)
-
+    const componentCount = computed(() => {
+        return titles.size + markdowns.size // Map用size获取数量
+    })
     const createTitle = (x, y) => {
         // 生成唯一ID
         const id = uuidv4()
         // 添加标题到数组
-        titles.push({
+        const newTitle = {
             id,
-            x,  // X坐标
-            y,  // Y坐标
-            content: '新标题'  // 默认内容
-        })
-        // 返回创建的标题，方便后续操作
-        return titles.find(item => item.id === id)
+            x,
+            y,
+            content: '新标题',
+            // 补充数据结构设计中的必要字段
+            type: 'title',
+            style:null,
+            parentId: null,
+            children: [],
+            zIndex: 1,
+            isLocked: false,
+            isShow: true,
+            createdAt: Date.now()
+        }
+        titles.set(id, newTitle) // Map用set存储
+        return newTitle // 直接返回新创建的对象
     }
-    // 新增：更新标题内容的方法
+    const createMarkdown = (x, y) => {
+        const id = uuidv4()
+        const newMarkdown = {
+            id,
+            x,
+            y,
+            content: '# 新文档\n\n这是一个markdown文档',
+            // 补充数据结构设计中的必要字段
+            type: 'markdown',
+            parentId: null,
+            children: [],
+            zIndex: 1,
+            isLocked: false,
+            isShow: true,
+            createdAt: Date.now()
+        }
+        markdowns.set(id, newMarkdown) // Map用set存储
+        return newMarkdown
+    }
     const updateTitleContent = (id, content) => {
-        const title = titles.find(item => item.id === id)
+        const title = titles.get(id) // Map用get查询
         if (title) {
             title.content = content
         }
     }
-
-    const createMarkdown = (x, y) => {
-        const id = uuidv4()
-        markdowns.push({
-            id,
-            x,
-            y,
-            content: '# 新文档\n\n这是一个markdown文档'  // 默认内容
-        })
-        return markdowns.find(item => item.id === id)
-    }
-    // 新增：更新markdown内容
     const updateMarkdownContent = (id, content) => {
-        const markdown = markdowns.find(item => item.id === id)
+        const markdown = markdowns.get(id)
         if (markdown) {
             markdown.content = content
         }
     }
+    //可以加个字段判断是否全删（包括children）
+    const deleteTitle = (id) => {
+        // 先删除子组件（如果有）
+        const title = titles.get(id)
+        if (title?.children?.length) {
+            title.children.forEach(childId => {
+                // 假设子组件可能是标题或markdown，这里需要根据实际类型处理
+                if (titles.has(childId)) deleteTitle(childId)
+                if (markdowns.has(childId)) deleteMarkdown(childId)
+            })
+        }
+        titles.delete(id) // Map用delete删除
+    }
+    // 删除markdown组件
+    const deleteMarkdown = (id) => {
+        const markdown = markdowns.get(id)
+        if (markdown?.children?.length) {
+            markdown.children.forEach(childId => {
+                if (titles.has(childId)) deleteTitle(childId)
+                if (markdowns.has(childId)) deleteMarkdown(childId)
+            })
+        }
+        markdowns.delete(id)
+    }
     // 修改保存逻辑（添加markdowns）
     const saveToLocalStorage = () => {
         const data = {
-            titles: [...titles],
-            markdowns: [...markdowns],  // 新增
+            // Map.values() 获取组件对象迭代器，转为数组后保存
+            titles: Array.from(titles.values()),
+            markdowns: Array.from(markdowns.values()),
             offsetX: offsetX.value,
             offsetY: offsetY.value,
             scale: scale.value
-        }
-        localStorage.setItem('canvasState', JSON.stringify(data))
-    }
+        };
+        localStorage.setItem('canvasState', JSON.stringify(data));
+    };
     // 新增：清空所有数据的函数（用于测试）
     const clearAllData = () => {
-        // 清空组件数组
-        titles.length = 0
-        markdowns.length = 0
+        // 清空 Map（Map 的清空方法是 clear()）
+        titles.clear();
+        markdowns.clear();
 
-        // 重置视图状态
-        offsetX.value = 0
-        offsetY.value = 0
-        scale.value = 1
+        // 重置视图状态（不变）
+        offsetX.value = 0;
+        offsetY.value = 0;
+        scale.value = 1;
 
-        // 清除本地存储
-        localStorage.removeItem('canvasState')
-    }
+        // 清除本地存储（不变）
+        localStorage.removeItem('canvasState');
+    };
     // 修改加载逻辑（添加markdowns）
     const loadFromLocalStorage = () => {
-        const savedData = localStorage.getItem('canvasState')
+        const savedData = localStorage.getItem('canvasState');
         if (savedData) {
             try {
                 const {
                     titles: savedTitles,
-                    markdowns: savedMarkdowns,  // 新增
+                    markdowns: savedMarkdowns,
                     offsetX: savedX,
                     offsetY: savedY,
                     scale: savedScale
-                } = JSON.parse(savedData)
+                } = JSON.parse(savedData);
 
-                // 恢复标题数据
-                titles.length = 0
-                savedTitles.forEach(title => titles.push(title))
+                // 恢复标题数据（先清空再逐个添加到 Map）
+                titles.clear();
+                savedTitles.forEach(title => {
+                    titles.set(title.id, title); // 以 id 为 key 存入 Map
+                });
 
-                // 新增：恢复markdown数据
-                markdowns.length = 0
-                savedMarkdowns?.forEach(markdown => markdowns.push(markdown))
+                // 恢复 markdown 数据（同上）
+                markdowns.clear();
+                savedMarkdowns?.forEach(markdown => {
+                    markdowns.set(markdown.id, markdown);
+                });
 
-                // 恢复视图状态
-                offsetX.value = savedX
-                offsetY.value = savedY
-                scale.value = savedScale
+                // 恢复视图状态（不变）
+                offsetX.value = savedX;
+                offsetY.value = savedY;
+                scale.value = savedScale;
             } catch (error) {
-                console.error('加载保存的数据失败:', error)
-                localStorage.removeItem('canvasState')
+                console.error('加载保存的数据失败:', error);
+                localStorage.removeItem('canvasState');
             }
         }
-    }
+    };
 
     // 新增：生成随机测试组件的方法
     const generateTestComponents = () => {
@@ -309,7 +359,7 @@ export const useCanvasStore = defineStore('canvas', () => {
         const centerX = canvasWidth / 2;
         const centerY = canvasHeight / 2;
 
-        const r = 100000
+        const r = 50000
         // 生成500个标题组件（中心附近±1500px范围）
         for (let i = 0; i < 500; i++) {
             // 在中心坐标基础上生成±1500px的随机偏移
@@ -320,12 +370,12 @@ export const useCanvasStore = defineStore('canvas', () => {
 
         // 生成500个markdown组件（同上范围）
         for (let i = 0; i < 500; i++) {
-            // const x = centerX + (Math.random() * r - r / 2);
-            // const y = centerY + (Math.random() * r - r / 2);
-            // createMarkdown(x, y).content = `# 测试文档 ${i + 1}\n\n这是第${i + 1}个测试markdown文档`;
+            const x = centerX + (Math.random() * r - r / 2);
+            const y = centerY + (Math.random() * r - r / 2);
+            createMarkdown(x, y).content = `# 测试文档 ${i + 1}\n\n这是第${i + 1}个测试markdown文档`;
         }
 
-        console.log('生成测试数据完成,当前：', titles.length, markdowns.length)
+        console.log('生成测试数据完成,当前：', titles.size, markdowns.size)
         // 保存生成的测试数据
         saveToLocalStorage()
     }
@@ -345,24 +395,38 @@ export const useCanvasStore = defineStore('canvas', () => {
         recomputeVisibleArea();
     }
 
-    // 更新标题位置
+    // const updateTitlePosition = (id, x, y) => {
+    //     const title = titles.get(id)
+    //     if (title) {
+    //         title.x = x
+    //         title.y = y
+    //     }
+    // }
+
+    //确实快了很多
     const updateTitlePosition = (id, x, y) => {
-        const title = titles.find(item => item.id === id)
-        if (title) {
-            title.x = x
-            title.y = y
-        }
-    }
+        const title = titles.get(id)
+        if (!title) return
 
-// 更新Markdown位置
+        title.x = x
+        title.y = y
+
+        // 触发 reactive(Map) 的更新
+        titles.set(id, title)
+    }
     const updateMarkdownPosition = (id, x, y) => {
-        const markdown = markdowns.find(item => item.id === id)
-        if (markdown) {
-            markdown.x = x
-            markdown.y = y
-        }
-    }
+        // 1. 从 reactive(Map) 中直接获取元素（不用 .value）
+        const markdown = markdowns.get(id)
+        if (!markdown) return // 没找到元素就退出
 
+        // 2. 修改位置
+        markdown.x = x
+        markdown.y = y
+
+        // 3. 关键：用 set 重新赋值，触发 reactive 的响应式更新
+        // 因为 reactive(Map) 会监听 set 操作，而直接改属性（markdown.x）可能不触发
+        markdowns.set(id, markdown)
+    }
 
 // 监听数据变化，自动保存
     watch([offsetX, offsetY, scale], saveToLocalStorage)
