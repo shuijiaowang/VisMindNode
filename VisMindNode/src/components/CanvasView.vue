@@ -170,7 +170,7 @@ function clearAllData() {
   canvasStore.clearAllData()
 }
 
- function showLog() {
+function showLog() {
   console.log(canvasStore.components)
 }
 onMounted(() => {
@@ -189,6 +189,8 @@ onMounted(() => {
     window.removeEventListener('keydown', handleKeyDown);
   });
 })
+
+
 </script>
 
 <style scoped>

@@ -32,7 +32,7 @@ export function useDraggable(componentType, id, initialX, initialY) {
         const isCtrlPressed = e.ctrlKey || e.metaKey;
         // Ctrl+点击时保留已有选中并添加当前元素
         if (isCtrlPressed) {
-            console.log('Ctrl+点击，没有生效，走了两遍选中了又取消了')
+            console.log('Ctrl+点击')
             canvasStore.toggleElementSelection(id, true)
         } else {
             // 非Ctrl点击时，若当前未选中则清空其他选中

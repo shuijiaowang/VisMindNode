@@ -530,25 +530,36 @@ export const useCanvasStore = defineStore('canvas', () => {
     }
 
     const toggleElementSelection = (id, isCtrlPressed) => {
+        console.log('走这里了', id); // 你的日志
+
+        // 关键：复制当前 Set 到新实例（必须创建新 Set）
+        const newSelected = new Set(selectedElementIds.value);
+
         if (isCtrlPressed) {
-            // Ctrl+点击：切换选中状态
-            if (selectedElementIds.value.has(id)) {
-                selectedElementIds.value.delete(id);
+            // Ctrl 模式：切换选中状态
+            if (newSelected.has(id)) {
+                newSelected.delete(id);
             } else {
-                console.log('ctrl为什么不走这里？', id)
-                selectedElementIds.value.add(id);
+                newSelected.add(id);
             }
         } else {
-            // 普通点击：替换选中状态
-            console.log('普通点击，保留当前')
-            selectedElementIds.value.clear();
-            selectedElementIds.value.add(id);
+            // 非 Ctrl 模式：替换选中状态（只保留当前 id）
+            newSelected.clear();
+            newSelected.add(id);
         }
+        // 关键：用新实例替换原 ref 值（触发响应式更新）
+        selectedElementIds.value = newSelected;
+
+        // 打印新实例（此时应看到 Proxy(Set) 的 Target 已更新）
+        console.log('更新后选中项:', selectedElementIds.value);
     };
 
     const clearAllSelections = () => {
         selectedElementIds.value.clear();
     };
+
+
+
 
 
 
