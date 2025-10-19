@@ -486,10 +486,12 @@ export const useCanvasStore = defineStore('canvas', () => {
             if (selectedElementIds.value.has(id)) {
                 selectedElementIds.value.delete(id);
             } else {
+                console.log('ctrl为什么不走这里？', id)
                 selectedElementIds.value.add(id);
             }
         } else {
             // 普通点击：替换选中状态
+            console.log('普通点击，保留当前')
             selectedElementIds.value.clear();
             selectedElementIds.value.add(id);
         }

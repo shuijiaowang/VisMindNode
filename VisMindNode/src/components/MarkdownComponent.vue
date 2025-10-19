@@ -13,9 +13,7 @@
         cursor: isDragging ? 'grabbing' : 'grab'
     }"
       :class="{ 'selected': isSelected }"
-      @click.stop="handleClick"
-      @mousedown.stop
-      @mousedown="startDrag"
+      @mousedown.stop="startDrag"
       v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
     <div class="markdown-toolbar" >
@@ -87,15 +85,6 @@ const isSelected = computed(() => {
   // 确保 store 中存在 selectedElementIds 且是 Set 类型
   return canvasStore.selectedElementIds?.has(props.id) || false;
 });
-const handleClick = (e) => {
-  // 新增：如果是拖拽事件，不处理选中逻辑
-  console.log("为什么点击失效没反应，子元素是点击了有反应，但是没有冒泡传上去？,卧槽isDragEvent.value为什么是true？？", isDragEvent.value)
-
-  // if (isDragEvent.value) return
-  console.log("为什么点击失效没反应，子元素是点击了有反应，但是没有冒泡传上去？")
-  canvasStore.toggleElementSelection(props.id, e.ctrlKey || e.metaKey);
-  console.log('selectedElementIds', canvasStore.selectedElementIds)
-};
 // 失去焦点时更新内容
 const handleBlur = () => {
   emit('update:content', currentContent.value)

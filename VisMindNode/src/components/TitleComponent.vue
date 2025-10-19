@@ -11,9 +11,7 @@
         cursor: isDragging ? 'grabbing' : 'grab'
       }"
       :class="{ 'selected': isSelected }"
-      @click.stop="handleClick"
-      @mousedown.stop
-      @mousedown="startDrag"
+      @mousedown.stop="startDrag"
       v-if="canvasStore.visibleTitleIds.includes(id)"
 
   >
@@ -70,9 +68,10 @@ const props = defineProps({
     default: () => ({}) // 默认空对象
   }
 })
-const handleClick = (e) => {
-  canvasStore.toggleElementSelection(props.id, e.ctrlKey || e.metaKey);
-};
+const isSelected = computed(() => {
+  // 确保 store 中存在 selectedElementIds 且是 Set 类型
+  return canvasStore.selectedElementIds?.has(props.id) || false;
+});
 
 // 定义要触发的事件
 const emit = defineEmits(['update:content'])
