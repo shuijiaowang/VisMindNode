@@ -43,7 +43,7 @@
 
 <script setup>
 // 导入必要的工具
-import {nextTick, ref, toRefs} from 'vue'
+import {nextTick, onMounted, onUnmounted, ref, toRefs} from 'vue'
 import { useCanvasStore } from '@/stores/canvasStore'
 import CanvasContent from "@/components/CanvasContent.vue";
 
@@ -173,6 +173,22 @@ function clearAllData() {
  function showLog() {
   console.log(canvasStore.components)
 }
+onMounted(() => {
+  // 监听全局键盘事件
+  const handleKeyDown = (e) => {
+    // 仅在按下Delete键且有选中元素时执行
+    if (e.key === 'Delete' && canvasStore.selectedElementIds.size > 0) {
+      canvasStore.deleteSelectedElements();
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+
+  // 组件卸载时移除监听
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeyDown);
+  });
+})
 </script>
 
 <style scoped>

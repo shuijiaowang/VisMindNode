@@ -278,6 +278,55 @@ export const useCanvasStore = defineStore('canvas', () => {
         }
         markdowns.delete(id)
     }
+    const deleteSelectedElements=() =>{
+        console.log("删除失败了？")
+        const idsToDelete = Array.from(selectedElementIds.value);
+        idsToDelete.forEach(id => {
+            console.log("删除id:",id)
+            deleteElementRecursively(id);
+        });
+        clearAllSelections();
+    }
+    const getElementById = (id) => {
+        // 先从标题中查找
+        if (titles.has(id)) {
+            return  titles.get(id)
+        }
+
+        // 再从markdown中查找
+        if (markdowns.has(id)) {
+            return markdowns.get(id)
+
+        }
+    }
+
+    // 递归删除元素及其子元素
+    const deleteElementRecursively=(id)=> {
+        const element = getElementById(id); // 需要实现根据ID获取元素的方法
+        if (!element) return;
+
+        // 先删除子元素
+        if (element.children && element.children.length) {
+            element.children.forEach(childId => {
+                deleteElementRecursively(childId);
+            });
+        }
+
+        // 从对应集合中删除元素
+        if (element.type === 'title') {
+             titles.delete(id);
+        } else if (element.type === 'markdown') {
+             markdowns.delete(id);
+        }
+
+        // 更新父元素的children列表
+        if (element.parentId) {
+            const parent =  getElementById(element.parentId);
+            if (parent && parent.children) {
+                parent.children = parent.children.filter(childId => childId !== id);
+            }
+        }
+    }
     // 修改保存逻辑（添加markdowns）
     const saveToLocalStorage = () => {
         const data = {
@@ -541,5 +590,6 @@ export const useCanvasStore = defineStore('canvas', () => {
         selectedElementIds,
         toggleElementSelection,
         clearAllSelections,
+        deleteSelectedElements,
     }
 })
