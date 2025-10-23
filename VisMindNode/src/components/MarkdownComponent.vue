@@ -14,7 +14,6 @@
     }"
       :class="{ 'selected': isSelected }"
       @mousedown.stop="startDrag"
-      v-if="canvasStore.visibleMarkdownIds.includes(id)"
   >
     <div class="markdown-toolbar" >
       <button @click.stop="toggleEdit">{{ isEditing ? '预览' : '编辑' }}</button>
@@ -82,17 +81,15 @@ const toggleEdit = () => {
   }
 }
 const isSelected = computed(() => {
-  // 确保 store 中存在 selectedElementIds 且是 Set 类型
-  return canvasStore.selectedElementIds?.has(props.id) || false;
+  return canvasStore.selectedElementIds.has(props.id);
 });
 // 失去焦点时更新内容
 const handleBlur = () => {
   emit('update:content', currentContent.value)
 }
 
-// 组件挂载时聚焦编辑器
 onMounted(() => {
-  // nextTick(() => editorRef.value?.focus())
+
 })
 </script>
 

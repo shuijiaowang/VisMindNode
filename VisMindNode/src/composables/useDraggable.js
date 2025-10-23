@@ -1,10 +1,19 @@
 // 拖拽逻辑复用函数
 import {onUnmounted, ref} from 'vue'
 import { useCanvasStore } from '@/stores/canvasStore.js'
+import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
+import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
+import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
+import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
 
 export function useDraggable(componentType, id, initialX, initialY) {
     // 获取全局状态
     const canvasStore = useCanvasStore()
+    const elementStore=useCanvasElementStore()
+    const areaStore= useCanvasAreaStore()
+    const viewStore=useCanvasViewStore()
+    const mouseStore=  useCanvasMouseStore()
+
     let canvasEl = null;
     let canvasRect = null;
     let startPositions = new Map() // 存储每个组件的初始位置
@@ -33,15 +42,15 @@ export function useDraggable(componentType, id, initialX, initialY) {
         // Ctrl+点击时保留已有选中并添加当前元素
         if (isCtrlPressed) {
             console.log('Ctrl+点击')
-            canvasStore.toggleElementSelection(id, true)
+            elementStore.toggleElementSelection(id, true)
         } else {
             // 非Ctrl点击时，若当前未选中则清空其他选中
-            if (!canvasStore.selectedElementIds.has(id)) {
-                canvasStore.clearAllSelections()
-                canvasStore.toggleElementSelection(id, false)
+            if (!elementStore.selectedElementIds.has(id)) {
+                elementStore.clearAllSelections()
+                elementStore.toggleElementSelection(id, false)
             }
         }
-        isSelected.value = canvasStore.selectedElementIds.has(id)
+        isSelected.value = elementStore.selectedElementIds.has(id)
     }
     // 开始拖拽（鼠标按下时）
     const startDrag = (e) => {
@@ -66,11 +75,11 @@ export function useDraggable(componentType, id, initialX, initialY) {
         // 组件当前位置是initialX/initialY，鼠标点击位置是e.clientX/e.clientY
         // 需要转换为画布坐标系（考虑画布的偏移和缩放）
         // 记录每个选中组件的初始位置和鼠标偏移
-        canvasStore.selectedElementIds.forEach(id => {
-            const pos = canvasStore.getComponentPosition(id) // 需要实现该方法
+        elementStore.selectedElementIds.forEach(id => {
+            const pos = elementStore.getComponentPosition(id) // 需要实现该方法
             // 鼠标在画布坐标系中的位置 = (鼠标在页面中的位置 - 画布偏移) / 缩放比例
-            const mouseXInCanvas = (e.clientX - canvasRect.left - canvasStore.offsetX) / canvasStore.scale
-            const mouseYInCanvas = (e.clientY - canvasRect.top - canvasStore.offsetY) / canvasStore.scale
+            const mouseXInCanvas = (e.clientX - canvasRect.left - viewStore.offsetX) / viewStore.scale
+            const mouseYInCanvas = (e.clientY - canvasRect.top - viewStore.offsetY) / viewStore.scale
 
             startPositions.set(id, {
                 initialX: pos.x,
@@ -104,26 +113,15 @@ export function useDraggable(componentType, id, initialX, initialY) {
         e.stopPropagation()
         e.preventDefault()
 
-        const mouseXInCanvas = (e.clientX - canvasRect.left - canvasStore.offsetX) / canvasStore.scale;
-        const mouseYInCanvas = (e.clientY - canvasRect.top - canvasStore.offsetY) / canvasStore.scale;
+        const mouseXInCanvas = (e.clientX - canvasRect.left - viewStore.offsetX) / viewStore.scale;
+        const mouseYInCanvas = (e.clientY - canvasRect.top - viewStore.offsetY) / viewStore.scale;
 
-        // const newX = mouseXInCanvas - mouseOffsetX
-        // const newY = mouseYInCanvas - mouseOffsetY
-        //
-        // if (componentType === 'title') {
-        //     canvasStore.updateTitlePosition(id, newX, newY)
-        // } else if (componentType === 'markdown') {
-        //     canvasStore.updateMarkdownPosition(id, newX, newY)
-        // }
         // 计算每个组件的位置变化
-        canvasStore.selectedElementIds.forEach(id => {
+        elementStore.selectedElementIds.forEach(id => {
             const startPos = startPositions.get(id)
             const newX = mouseXInCanvas - startPos.offsetX
             const newY = mouseYInCanvas - startPos.offsetY
-            const deltaX = newX - startPos.initialX //这是啥
-            const deltaY = newY - startPos.initialY
-
-            canvasStore.updateComponentPosition(id, newX, newY) // 更新单个组件位置
+            elementStore.updateComponentPosition(id, newX, newY) // 更新单个组件位置
         })
 
     })
@@ -148,35 +146,6 @@ export function useDraggable(componentType, id, initialX, initialY) {
             isDragEvent.value = false
         }, 0)
     }
-    // 拖拽中（鼠标移动时）
-    // const onDrag = (e) => {
-    //     if (!isDragging.value) return
-    //     e.stopPropagation()
-    //
-    //     // 实时计算新位置
-    //     // 复用缓存的画布信息，不再重复查询
-    //     const mouseXInCanvas = (e.clientX - canvasRect.left - canvasStore.offsetX) / canvasStore.scale;
-    //     const mouseYInCanvas = (e.clientY - canvasRect.top - canvasStore.offsetY) / canvasStore.scale;
-    //
-    //     // 新位置 = 鼠标当前画布坐标 - 初始偏移量（保持鼠标在组件内的相对位置不变）
-    //     const newX = mouseXInCanvas - mouseOffsetX
-    //     const newY = mouseYInCanvas - mouseOffsetY
-    //
-    //     // 根据组件类型更新全局状态中的位置
-    //     if (componentType === 'title') {
-    //         canvasStore.updateTitlePosition(id, newX, newY)
-    //     } else if (componentType === 'markdown') {
-    //         canvasStore.updateMarkdownPosition(id, newX, newY)
-    //     }
-    // }
-    //
-    // // 结束拖拽（鼠标松开时）
-    // const endDrag = (e) => {
-    //     if (!isDragging.value) return
-    //     e.stopPropagation()
-    //     isDragging.value = false
-    // }
-    // 组件卸载时清理事件（防止内存泄漏）
     onUnmounted(() => {
         document.removeEventListener('mousemove', handleDragMove)
         document.removeEventListener('mouseup', handleDragEnd)

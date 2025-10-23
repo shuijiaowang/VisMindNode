@@ -1,6 +1,16 @@
 <script setup>
 
 import CanvasView from "@/components/CanvasView.vue";
+import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
+import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
+import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
+import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
+import {useCanvasStore} from "@/stores/canvasStore.js";
+const canvasStore = useCanvasStore()
+const elementStore=useCanvasElementStore()
+const areaStore= useCanvasAreaStore()
+const viewStore=useCanvasViewStore()
+const mouseStore=  useCanvasMouseStore()
 
 </script>
 

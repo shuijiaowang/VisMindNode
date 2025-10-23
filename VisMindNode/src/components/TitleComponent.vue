@@ -69,8 +69,7 @@ const props = defineProps({
   }
 })
 const isSelected = computed(() => {
-  // 确保 store 中存在 selectedElementIds 且是 Set 类型
-  return canvasStore.selectedElementIds?.has(props.id) || false;
+  return canvasStore.selectedElementIds.has(props.id);
 });
 
 // 定义要触发的事件
@@ -102,12 +101,7 @@ const showStylePanel = () => {
 
 // 当组件挂载后自动聚焦
 onMounted(() => {
-  // 确保DOM已渲染，再执行聚焦
-  // nextTick(() => {
-  //   if (titleInput.value) {
-  //     titleInput.value.focus()
-  //   }
-  // })
+
 })
 
 // 失去焦点时更新内容

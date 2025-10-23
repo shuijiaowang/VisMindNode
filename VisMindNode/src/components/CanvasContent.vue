@@ -15,25 +15,25 @@
     <div class="origin-marker">原点(0,0)</div>
     <!-- 未来可添加更多画布元素 -->
     <TitleComponent
-        v-for="id in canvasStore.visibleTitleIds"
+        v-for="id in elementStore.visibleTitleIds"
         :key="id"
         :id="id"
-        :x="canvasStore.titles.get(id).x"
-        :y="canvasStore.titles.get(id).y"
-        :content="canvasStore.titles.get(id).content"
-        :style="canvasStore.titles.get(id).style"
-        @update:content="(content) => canvasStore.updateTitleContent(id, content)"
+        :x="elementStore.elMap.get(id).x"
+        :y="elementStore.elMap.get(id).y"
+        :content="elementStore.elMap.get(id).content"
+        :style="elementStore.elMap.get(id).style"
+        @update:content="(content) => elementStore.elMap.get(id).content = content"
     />
     <!-- 新增：Markdown组件 -->
     <MarkdownComponent
-        v-for="id in canvasStore.visibleMarkdownIds"
+        v-for="id in elementStore.visibleMarkdownIds"
         :key="id"
         :id="id"
-        :x="canvasStore.markdowns.get(id).x"
-        :y="canvasStore.markdowns.get(id).y"
-        :content="canvasStore.markdowns.get(id).content"
-        :style="canvasStore.markdowns.get(id).style"
-        @update:content="(content) => canvasStore.updateMarkdownContent(id, content)"
+        :x="elementStore.elMap.get(id).x"
+        :y="elementStore.elMap.get(id).y"
+        :content="elementStore.elMap.get(id).content"
+        :style="elementStore.elMap.get(id).style"
+        @update:content="(content) => elementStore.elMap.get(id).content = content"
     />
 
     <!-- 框选视觉反馈：修复视觉坐标计算 -->
@@ -58,7 +58,15 @@ import {defineProps, ref} from 'vue'
 import {useCanvasStore} from "@/stores/canvasStore.js";
 import TitleComponent from "@/components/TitleComponent.vue";
 import MarkdownComponent from "@/components/MarkdownComponent.vue";
-
+import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
+import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
+import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
+import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
+const canvasStore = useCanvasStore()
+const elementStore=useCanvasElementStore()
+const areaStore= useCanvasAreaStore()
+const viewStore=useCanvasViewStore()
+const mouseStore=  useCanvasMouseStore()
 // 接收从父组件传入的偏移量和缩放值
 const props = defineProps({
   offsetX: {
@@ -74,20 +82,22 @@ const props = defineProps({
     required: true
   }
 })
-const canvasStore = useCanvasStore();
-// 处理双击事件
-// 可以添加区分创建标题和markdown的逻辑，这里示例用ctrl+双击创建markdown
 const handleDblClick = (e) => {
   if (1) {  // 按住ctrl键双击创建markdown
     console.log('创建markdown')
+    console.log("这里是空",canvasStore.visibleMarkdownIds)
+    console.log("这里有值",)
     canvasStore.createMarkdown(e.offsetX, e.offsetY);
   } else {  // 普通双击创建标题
     canvasStore.createTitle(e.offsetX, e.offsetY);
   }
 };
+// 处理点击事件
 const handleCanvasClick = (e) => {
-  // 只有点击画布空白区域才取消选中
+  if (canvasStore.isDragEvent) return
+  // 只有点击画布空白区域才取消选中,操蛋，框选结束后又触发click事件给清空了
   if (e.target === e.currentTarget) {
+    console.log('取消选中')
     canvasStore.clearAllSelections();
   }
 };
@@ -101,15 +111,15 @@ const startBoxSelect = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.target === e.currentTarget) {
 
     e.preventDefault();
-    e.stopPropagation(); //不是阻止冒泡了吗，为什么控制台会一直打印ctrl为什么不走这里？ d2914534-5559-47da-a134-0b5b174964a4
+    e.stopPropagation();
     isBoxSelecting.value = true;
 
-    // 直接使用鼠标在画布上的偏移坐标
+    // 直接使用仓库中的鼠标逻辑坐标作为起点（无需手动计算）
     boxRect.value = {
-      x1: e.offsetX,
-      y1: e.offsetY,
-      x2: e.offsetX,
-      y2: e.offsetY
+      x1: mouseStore.mousePositionInCanvas.x,
+      y1: mouseStore.mousePositionInCanvas.y,
+      x2: mouseStore.mousePositionInCanvas.x,
+      y2: mouseStore.mousePositionInCanvas.y
     };
 
     console.log('开始框选√', boxRect.value)
@@ -120,35 +130,12 @@ const startBoxSelect = (e) => {
 
 const onBoxSelectMove = (e) => {
   if (!isBoxSelecting.value) return;
+  canvasStore.setIsDragEvent(true) //标记当前为拖拽事件
+  console.log('框选中...',canvasStore.isDragEvent) //为什么是undefined
 
-  const canvasEl = document.querySelector('.infinite-canvas');
-  if (!canvasEl) return;
-
-  // 1. 获取画布元素的位置和尺寸（视口坐标系）
-  const rect = canvasEl.getBoundingClientRect();
-  // 2. 画布自身的逻辑尺寸（固定值，从canvasSize获取或直接读取）
-  const canvasWidth = canvasEl.offsetWidth;
-  const canvasHeight = canvasEl.offsetHeight;
-  // 3. 画布的逻辑中心（固定不变，以画布自身中心为原点参考）
-  const canvasCenterX = canvasWidth / 2;
-  const canvasCenterY = canvasHeight / 2;
-
-  // 4. 计算鼠标在画布元素内的物理坐标（相对于画布左上角的屏幕坐标）
-  const mouseXInElement = e.clientX - rect.left;
-  const mouseYInElement = e.clientY - rect.top;
-
-  // 5. 核心转换：物理坐标 -> 画布逻辑坐标
-  // 公式参考：逻辑坐标 = 画布中心 + (物理坐标 - 画布视觉中心) / 缩放比例
-  // 画布视觉中心 = 画布元素尺寸的一半（因为画布本身居中显示）
-  const canvasVisualCenterX = rect.width / 2;
-  const canvasVisualCenterY = rect.height / 2;
-
-  const canvasX = canvasCenterX + (mouseXInElement - canvasVisualCenterX - canvasStore.offsetX) / canvasStore.scale;
-  const canvasY = canvasCenterY + (mouseYInElement - canvasVisualCenterY - canvasStore.offsetY) / canvasStore.scale;
-
-  // 更新框选终点坐标（逻辑坐标）
-  boxRect.value.x2 = canvasX;
-  boxRect.value.y2 = canvasY;
+  // 直接复用仓库中的实时鼠标逻辑坐标（无需手动计算）
+  boxRect.value.x2 = mouseStore.mousePositionInCanvas.x;
+  boxRect.value.y2 = mouseStore.mousePositionInCanvas.y;
   console.log('框选中...', boxRect.value)
 };
 // 结束框选（保持逻辑不变，使用简化后的坐标）
@@ -168,43 +155,22 @@ const endBoxSelect = (e) => {
 
   const selectedIds = [];
   // 检查标题元素
-  canvasStore.titles.forEach((title) => {
-    if (isElementInRect(title, rect)) {
-      selectedIds.push(title.id);
-    }
-  });
-  // 检查文档元素
-  canvasStore.markdowns.forEach((markdown) => {
-    if (isElementInRect(markdown, rect)) {
-      selectedIds.push(markdown.id);
+  // 从所有元素中筛选出在选框内的
+  elementStore.elMap.forEach((element) => {
+    // 只处理标题和markdown类型
+    if (element.type === 'title' || element.type === 'markdown') {
+      if (isElementInRect(element, rect)) {
+        selectedIds.push(element.id);
+      }
     }
   });
   // 更新选中状态
   if (selectedIds.length) {
-    // console.log('ok,选中元素：', selectedIds)
-    // if (e.ctrlKey || e.metaKey) {
-    //   console.log('ok,ctrl+框选')
-    //   selectedIds.forEach(id => canvasStore.toggleElementSelection(id, true));
-    // } else {
-    //   // canvasStore.clearAllSelections();
-    //   selectedIds.forEach(id => canvasStore.toggleElementSelection(id, true));
-    // }
-    // 关键：批量处理，只创建一次新 Set
-    const newSelected = new Set(canvasStore.selectedElementIds.value);
-
-    if (e.ctrlKey || e.metaKey) {
-      console.log('ok,ctrl+框选')
-      // Ctrl 模式：添加所有框选元素
-      selectedIds.forEach(id => newSelected.add(id));
-    } else {
-      // 非 Ctrl 模式：替换为框选元素
-      newSelected.clear();
-      selectedIds.forEach(id => newSelected.add(id));
-    }
-
-    // 只更新一次
-    selectedElementIds.value = newSelected;
+    selectedIds.forEach(id=>elementStore.selectedElementIds.add(id))
   }
+  setTimeout(() => {
+    canvasStore.setIsDragEvent(false) // 重置store标记
+  }, 100)
 };
 
 // 辅助函数：判断元素是否在选框内（保持范围判断）
