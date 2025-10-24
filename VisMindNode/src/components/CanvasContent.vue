@@ -95,10 +95,13 @@ const props = defineProps({
 })
 const handleDblClick = (e) => {
   if (1) {  // 按住ctrl键双击创建markdown
-    console.log('创建markdown')
-    console.log("这里是空",canvasStore.visibleMarkdownIds)
-    console.log("这里有值",)
-    canvasStore.createMarkdown(e.offsetX, e.offsetY);
+    const options={
+      type: 'text',
+      content: '请输入内容',
+      x: e.offsetX,
+      y: e.offsetY,
+    }
+    elementStore.createElement(options)
   } else {  // 普通双击创建标题
     canvasStore.createTitle(e.offsetX, e.offsetY);
   }

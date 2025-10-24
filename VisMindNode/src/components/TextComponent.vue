@@ -90,7 +90,7 @@ onMounted(() => {
 
 <style scoped>
 .text-component {
-  padding: 8px 12px;
+  padding: 25px 6px 6px 6px;
   border-radius: 6px;
   transition: all 0.15s ease;
   width: auto; /* 让父容器宽度自适应内容 */
