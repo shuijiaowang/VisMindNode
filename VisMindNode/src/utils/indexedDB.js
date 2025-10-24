@@ -69,5 +69,17 @@ export const canvasDB = {
             transaction.oncomplete = resolve;
             transaction.onerror = reject;
         });
+    },
+    // 导出数据
+    async exportData() {
+        if (!this.db) await this.init();
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(this.storeName, 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            const request = store.get('canvasState');
+
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = reject;
+        });
     }
 };

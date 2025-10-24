@@ -23,12 +23,19 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             type: 'markdown',
             defaultContent: '# 新文档',
             defaultStyle: { fontSize: 14, color: '#666' }
+        },
+        text: {
+            type: 'text',
+            defaultContent: '新文本',
+            defaultStyle: { fontSize: 14, color: '#333' }
         }
         // 新增元素类型只需添加配置
     }
     // 创建元素（通用方法）
     // 创建元素（通用方法）
     const createElement = (options) => {
+
+
         const id = uuidv4()
         const element = {
             id,
@@ -67,7 +74,6 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             style: { fontSize: 16, color: '#333' }
         })
     }
-
     // 创建Markdown元素
     const createMarkdown = (x, y, content = '# 新文档') => {
         return createElement({
@@ -78,22 +84,6 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             style: { fontSize: 14, color: '#666' }
         })
     }
-
-    // // 更新元素位置
-    // const updateComponentPosition = (id, x, y) => {
-    //     // const element = elMap.get(id)
-    //     // if (element) {
-    //     //     element.x = x
-    //     //     element.y = y
-    //     // }
-    //     //测试有什么不同，好像下面的性能更好？
-    //     const element = elMap.get(id)
-    //     if (element) {
-    //         element.x = x
-    //         element.y = y
-    //     }
-    //     elMap.set(id, element)
-    // }
     // 更新元素位置（复用updateElement）
     const updateComponentPosition = (id, x, y) => {
         updateElement(id, { x, y })
@@ -143,6 +133,11 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             .filter(el => el.type === 'markdown')
             .map(el => el.id)
     })
+    const visibleTextIds=computed(() => {
+        return visibleElements.value
+            .filter(el => el.type === 'text')
+            .map(el => el.id)
+    })
 
     // 删除选中元素
     const deleteSelectedElements = () => {
@@ -178,7 +173,7 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
         const { offsetWidth: canvasWidth, offsetHeight: canvasHeight } = canvasEl
         const centerX = canvasWidth / 2
         const centerY = canvasHeight / 2
-        const range = 50000
+        const range = 5000
 
         Object.values(componentConfigs).forEach(config => {
             for (let i = 0; i < count; i++) {
@@ -200,6 +195,7 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
         selectedElementIds,
         visibleTitleIds,
         visibleMarkdownIds,
+        visibleTextIds,
         createElement,
         createTitle,
         createMarkdown,

@@ -16,9 +16,19 @@
         <div class="toolbar">
           <button @click="createNewTitle">新建标题</button>
           <button @click="createNewMarkdown">新建文档</button>
+          <button @click="createNewText">新建文本</button>
           <button @click="resetView">重置视图</button>
           <button @click="clearAllData">删除所有数据</button>
           <button @click="elementStore.generateTestComponents()">压力测试</button>
+          <button @click="exportData">导出数据</button>
+          <input
+              type="file"
+              id="importFile"
+              accept=".json"
+              style="display: none"
+              @change="handleImport"
+          >
+          <button @click="triggerImport">导入数据</button>
           <button @click="zoomIn">放大</button>
           <button @click="zoomOut">缩小</button>
           <span class="zoom-level">{{ (scale * 100).toFixed(0) }}%</span>
@@ -61,6 +71,7 @@ import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
 import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
 import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
 import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
+import {canvasDB} from "@/utils/indexedDB.js";
 
 // 获取画布全局状态（偏移量和缩放）
 const canvasStore = useCanvasStore()
@@ -168,12 +179,21 @@ const resetView = async () => {
 
 // 新增方法
 const createNewTitle = () => {
-  canvasStore.createTitle(canvasStore.windowCenterInCanvas.x, canvasStore.windowCenterInCanvas.y)
+  canvasStore.createTitle(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
 }
 
 const createNewMarkdown = () => {
   // 在视图中心创建markdown
-  canvasStore.createMarkdown(canvasStore.windowCenterInCanvas.x, canvasStore.windowCenterInCanvas.y)
+  canvasStore.createMarkdown(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
+}
+const createNewText = () => {
+  const options={
+    type: 'text',
+    content: '请输入内容',
+    x: areaStore.windowCenterInCanvas.x,
+    y: areaStore.windowCenterInCanvas.y,
+  }
+  elementStore.createElement(options)
 }
 
 // 删除所有数据
@@ -199,7 +219,89 @@ onMounted(() => {
   });
 })
 
+// 导出数据
+const exportData = async () => {
+  try {
+    const data = await canvasDB.exportData();
+    if (!data) {
+      alert("没有可导出的数据");
+      return;
+    }
 
+    // 转换为JSON字符串
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    // 创建下载链接
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `canvas-backup-${new Date().getTime()}.json`;
+    document.body.appendChild(a);
+    a.click();
+
+    // 清理资源
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  } catch (error) {
+    console.error("导出失败:", error);
+    alert("导出数据失败，请查看控制台");
+  }
+};
+
+// 触发导入文件选择
+const triggerImport = () => {
+  document.getElementById("importFile").click();
+};
+
+// 处理导入数据
+const handleImport = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    // 读取文件内容
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+
+        // 验证导入数据格式
+        if (!importedData.elements || !importedData.viewState) {
+          throw new Error("无效的导入文件格式");
+        }
+
+        // 清空现有数据
+        elementStore.clearAllElements();
+        viewStore.resetView();
+
+        // 导入元素数据
+        importedData.elements.forEach(el => {
+          elementStore.elMap.set(el.id, el);
+          if (!el.parentId) elementStore.rootIds.push(el.id);
+        });
+
+        // 导入视图状态
+        viewStore.offsetX = importedData.viewState.offsetX ?? 0;
+        viewStore.offsetY = importedData.viewState.offsetY ?? 0;
+        viewStore.scale = importedData.viewState.scale ?? 1;
+
+        // 保存到数据库
+        await canvasDB.save(importedData);
+        alert("数据导入成功");
+      } catch (err) {
+        console.error("解析导入数据失败:", err);
+        alert("导入失败：" + err.message);
+      }
+    };
+    reader.readAsText(file);
+  } finally {
+    // 重置文件输入，允许重复选择同一文件
+    e.target.value = "";
+  }
+};
 </script>
 
 <style scoped>

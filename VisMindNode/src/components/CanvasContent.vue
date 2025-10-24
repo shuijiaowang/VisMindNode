@@ -35,6 +35,16 @@
         :style="elementStore.elMap.get(id).style"
         @update:content="(content) => elementStore.elMap.get(id).content = content"
     />
+    <TextComponent
+        v-for="id in elementStore.visibleTextIds"
+        :key="id"
+        :id="id"
+        :x="elementStore.elMap.get(id).x"
+        :y="elementStore.elMap.get(id).y"
+        :content="elementStore.elMap.get(id).content"
+        :style="elementStore.elMap.get(id).style"
+        @update:content="(content) => elementStore.elMap.get(id).content = content"
+    />
 
     <!-- 框选视觉反馈：修复视觉坐标计算 -->
     <!-- 框选视觉反馈：修复视觉坐标计算（结合画布偏移和缩放） -->
@@ -62,6 +72,7 @@ import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
 import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
 import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
 import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
+import TextComponent from "@/components/TextComponent.vue";
 const canvasStore = useCanvasStore()
 const elementStore=useCanvasElementStore()
 const areaStore= useCanvasAreaStore()

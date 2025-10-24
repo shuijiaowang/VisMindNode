@@ -12,7 +12,6 @@
       }"
       :class="{ 'selected': isSelected }"
       @mousedown.stop="startDrag"
-      v-if="canvasStore.visibleTitleIds.includes(id)"
 
   >
     <!-- 拖拽手柄 -->
