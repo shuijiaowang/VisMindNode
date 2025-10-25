@@ -96,35 +96,49 @@ export function useDraggable(componentType, id, initialX, initialY) {
         document.addEventListener('mouseup', handleDragEnd)
     }
 
+    let dragFrameId = null;
+
     // 拖拽中（提取为独立函数，绑定到document）
-    const handleDragMove = throttle((e) => {
-        if (!isDragging.value) return
-        // 检测到移动，标记为拖拽事件
-        // 计算总位移（与初始位置的距离）
-        const totalX = Math.abs(e.clientX - startMousePos.x)
-        const totalY = Math.abs(e.clientY - startMousePos.y)
-
-        // 位移超过5px则判定为拖拽（避免微小抖动）
-        if (totalX > 5 || totalY > 5) {
-            hasMoved.value = true
-            isDragEvent.value = true
+    const handleDragMove = (e) => {
+        // 取消上一帧未执行的更新（避免累积）
+        if (dragFrameId) {
+            cancelAnimationFrame(dragFrameId);
         }
-        if (!hasMoved.value) return; // 未达到拖拽阈值则不更新位置
-        e.stopPropagation()
-        e.preventDefault()
+        // 请求下一帧，传入当前鼠标事件给updateDrag
+        dragFrameId = requestAnimationFrame(() => updateDrag(e));
+    }
+    function updateDrag(e) {
+        if (!isDragging.value) return; // 不是拖拽状态，直接退出
 
+        // 计算鼠标移动的总距离（判断是否达到拖拽阈值）
+        const totalX = Math.abs(e.clientX - startMousePos.x);
+        const totalY = Math.abs(e.clientY - startMousePos.y);
+
+        // 超过5px才判定为拖拽，避免微小抖动
+        if (totalX > 5 || totalY > 5) {
+            hasMoved.value = true;
+            isDragEvent.value = true;
+        }
+        if (!hasMoved.value) return; // 没达到阈值，不更新位置
+
+        // 阻止事件冒泡和默认行为（避免选中文本等）
+        e.stopPropagation();
+        e.preventDefault();
+
+        // 计算鼠标在画布中的实际位置（考虑画布偏移和缩放）
         const mouseXInCanvas = (e.clientX - canvasRect.left - viewStore.offsetX) / viewStore.scale;
         const mouseYInCanvas = (e.clientY - canvasRect.top - viewStore.offsetY) / viewStore.scale;
 
-        // 计算每个组件的位置变化
+        // 更新每个选中组件的位置
         elementStore.selectedElementIds.forEach(id => {
-            const startPos = startPositions.get(id)
-            const newX = mouseXInCanvas - startPos.offsetX
-            const newY = mouseYInCanvas - startPos.offsetY
-            elementStore.updateComponentPosition(id, newX, newY) // 更新单个组件位置
-        })
-
-    })
+            const startPos = startPositions.get(id);
+            if (startPos) {
+                const newX = mouseXInCanvas - startPos.offsetX;
+                const newY = mouseYInCanvas - startPos.offsetY;
+                elementStore.updateComponentPosition(id, newX, newY);
+            }
+        });
+    }
     // 结束拖拽（提取为独立函数，绑定到document）
     const handleDragEnd = (e) => {
         if (!isDragging.value) return
@@ -133,6 +147,10 @@ export function useDraggable(componentType, id, initialX, initialY) {
         console.log('结束拖拽')
         isDragging.value = false
         startMousePos = null; // 重置初始鼠标位置
+        if (dragFrameId) {
+            cancelAnimationFrame(dragFrameId);
+            dragFrameId = null;
+        }
         // 延迟重置状态
         setTimeout(() => {
             isDragEvent.value = false

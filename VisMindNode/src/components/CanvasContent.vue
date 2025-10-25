@@ -66,13 +66,13 @@
 <script setup>
 import {defineProps, ref} from 'vue'
 import {useCanvasStore} from "@/stores/canvasStore.js";
-import TitleComponent from "@/components/TitleComponent.vue";
-import MarkdownComponent from "@/components/MarkdownComponent.vue";
+import TitleComponent from "@/components/canvas/TitleComponent.vue";
+import MarkdownComponent from "@/components/canvas/MarkdownComponent.vue";
 import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
 import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
 import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
 import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
-import TextComponent from "@/components/TextComponent.vue";
+import TextComponent from "@/components/canvas/TextComponent.vue";
 const canvasStore = useCanvasStore()
 const elementStore=useCanvasElementStore()
 const areaStore= useCanvasAreaStore()
@@ -94,7 +94,6 @@ const props = defineProps({
   }
 })
 const handleDblClick = (e) => {
-  if (1) {  // 按住ctrl键双击创建markdown
     const options={
       type: 'text',
       content: '请输入内容',
@@ -102,20 +101,16 @@ const handleDblClick = (e) => {
       y: e.offsetY,
     }
     elementStore.createElement(options)
-  } else {  // 普通双击创建标题
-    canvasStore.createTitle(e.offsetX, e.offsetY);
-  }
 };
-// 处理点击事件
+// --------------------处理点击事件-------------------
 const handleCanvasClick = (e) => {
   if (canvasStore.isDragEvent) return
   // 只有点击画布空白区域才取消选中,操蛋，框选结束后又触发click事件给清空了
   if (e.target === e.currentTarget) {
-    console.log('取消选中')
     canvasStore.clearAllSelections();
   }
 };
-
+//--------------------处理框选事件---------------------
 const isBoxSelecting = ref(false);
 const boxRect = ref({ x1: 0, y1: 0, x2: 0, y2: 0 });
 // 开始框选
@@ -171,12 +166,9 @@ const endBoxSelect = (e) => {
   // 检查标题元素
   // 从所有元素中筛选出在选框内的
   elementStore.elMap.forEach((element) => {
-    // 只处理标题和markdown类型
-    if (element.type === 'title' || element.type === 'markdown') {
       if (isElementInRect(element, rect)) {
         selectedIds.push(element.id);
       }
-    }
   });
   // 更新选中状态
   if (selectedIds.length) {

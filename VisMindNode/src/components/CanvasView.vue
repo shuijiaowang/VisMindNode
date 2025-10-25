@@ -14,48 +14,11 @@
         :scale="scale"
     />
         <div class="toolbar">
-          <button @click="createNewTitle">新建标题</button>
-          <button @click="createNewMarkdown">新建文档</button>
-          <button @click="createNewText">新建文本</button>
-          <button @click="resetView">重置视图</button>
-          <button @click="clearAllData">删除所有数据</button>
-          <button @click="elementStore.generateTestComponents()">压力测试</button>
-          <button @click="exportData">导出数据</button>
-          <input
-              type="file"
-              id="importFile"
-              accept=".json"
-              style="display: none"
-              @change="handleImport"
-          >
-          <button @click="triggerImport">导入数据</button>
-          <button @click="zoomIn">放大</button>
-          <button @click="zoomOut">缩小</button>
-          <span class="zoom-level">{{ (scale * 100).toFixed(0) }}%</span>
+          <BottomToolbar/>
         </div>
         <!-- 数据看板 -->
         <div class="log">
-          <div>偏移X: {{ viewStore.offsetX.toFixed(2) }}px</div>
-          <div>偏移Y: {{ viewStore.offsetY.toFixed(2) }}px</div>
-          <div>缩放: {{ (viewStore.scale * 100).toFixed(0) }}%</div>
-          <div style="flex: 0 0 100%; height: 1px; background: #eee; margin: 5px 0;"></div>
-          <div>视图中心X: {{ areaStore.windowCenterInCanvas.x.toFixed(2) }}</div>
-          <div>视图中心Y: {{ areaStore.windowCenterInCanvas.y.toFixed(2) }}</div>
-          <div>鼠标X: {{ mouseStore.mouseClientX.toFixed(2) }}</div>
-          <div>鼠标Y: {{ mouseStore.mouseClientY.toFixed(2) }}</div>
-
-          <div>鼠标在画布X: {{ mouseStore.mousePositionInCanvas?.x.toFixed(2) }}</div>
-          <div>鼠标在画布Y: {{ mouseStore.mousePositionInCanvas?.y.toFixed(2) }}</div>
-
-          <div style="flex: 0 0 100%; height: 1px; background: #eee; margin: 5px 0;"></div>
-          <div>左边界: {{ areaStore.visibleAreaInCanvasBounds.minX.toFixed(2) }}</div>
-          <div>右边界: {{ areaStore.visibleAreaInCanvasBounds.maxX.toFixed(2) }}</div>
-          <div>上边界: {{ areaStore.visibleAreaInCanvasBounds.minY.toFixed(2) }}</div>
-          <div>下边界: {{ areaStore.visibleAreaInCanvasBounds.maxY.toFixed(2) }}</div>
-          <div style="flex: 0 0 100%; height: 1px; background: #eee; margin: 5px 0;"></div>
-          <div v-if="areaStore.preloadAreaInCanvasBounds">临时的边界:{{areaStore.preloadAreaInCanvasBounds.minX.toFixed(2)}}, {{areaStore.preloadAreaInCanvasBounds.maxX.toFixed(2)}} , {{areaStore.preloadAreaInCanvasBounds.minY.toFixed(2)}} , {{areaStore.preloadAreaInCanvasBounds.maxY.toFixed(2)}}</div>
-          <div>组件数量: {{ elementStore.elMap.size}}，视图范围内组件数量{{elementStore.visibleTitleIds.length+elementStore.visibleMarkdownIds.length}}</div>
-
+              <DataDashboard />
         </div>
 
   </div>
@@ -72,6 +35,8 @@ import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
 import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
 import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
 import {canvasDB} from "@/utils/indexedDB.js";
+import DataDashboard from "@/components/canvasExtras/DataDashboard.vue";
+import BottomToolbar from "@/components/canvasExtras/BottomToolbar.vue";
 
 // 获取画布全局状态（偏移量和缩放）
 const canvasStore = useCanvasStore()
@@ -83,14 +48,16 @@ const mouseStore=  useCanvasMouseStore()
 const { offsetX, offsetY, scale } =toRefs(viewStore)
 
 
+//-----------------------------拖拽位移事件处理----------------------------
 // 拖拽状态管理
 const isDragging = ref(false) // 是否正在拖拽
+//拖拽坐标管理
 let dragX = 0, dragY = 0
 const startPos = ref({ x: 0, y: 0 }) // 记录鼠标刚按下时的位置（用来计算移动了多少距离）
 
 // 鼠标按下：开始拖拽
 function startDrag(e) {
-
+  //判断是当前元素才处理？
   isDragging.value = true
   // 记录初始位置（减去当前偏移量，避免拖拽起点跳变）
   startPos.value.x = e.clientX - offsetX.value
@@ -101,27 +68,23 @@ function startDrag(e) {
 function onDrag(e) {
   if (!isDragging.value) return // 非拖拽状态不处理
   // 计算新的偏移量（当前鼠标位置 - 初始位置）
-  // 只记录位置变化，不直接更新状态
   dragX = e.clientX - startPos.value.x
   dragY = e.clientY - startPos.value.y
-  // offsetX.value = e.clientX - startPos.value.x
-  // offsetY.value = e.clientY - startPos.value.y
-  // 请求下一帧更新
+  //帧节流更新
   requestAnimationFrame(updatePosition)
 }
 function updatePosition() {
   offsetX.value = dragX
   offsetY.value = dragY
 }
-
 // 鼠标松开/离开：结束拖拽
 function endDrag() {
   isDragging.value = false
 }
-// 新增：处理鼠标滚轮缩放
+// ----------------------------鼠标滚轮缩放事件处理----------------------------
 function handleZoom(e) {
-  // e.preventDefault(); // 必须阻止默认行为，否则会影响拖拽
-
+  // e.preventDefault(); // 必须阻止默认行为，否则会影响拖拽？？好像没啥影响
+  //现在还能边拖拽边缩放
   const zoomSpeed = 0.1;
   let newScale = scale.value;
   if (e.deltaY < 0) {
@@ -141,167 +104,27 @@ function handleZoom(e) {
   // 关键修正：用容器实际宽高计算中心（代替硬编码的300）
   const centerX = rect.width / 2;  // 容器真实宽度的一半
   const centerY = rect.height / 2; // 容器真实高度的一半
-
-  // 计算鼠标在缩放前的画布逻辑坐标
   const mouseXOnCanvasBefore = (mouseXInContainer - centerX - offsetX.value) / scale.value;
   const mouseYOnCanvasBefore = (mouseYInContainer - centerY - offsetY.value) / scale.value;
-
   scale.value = newScale;
-
   // 调整偏移量时也用真实中心
   offsetX.value = mouseXInContainer - centerX - mouseXOnCanvasBefore * newScale;
   offsetY.value = mouseYInContainer - centerY - mouseYOnCanvasBefore * newScale;
 }
-
-// 放大按钮功能
-function zoomIn() {
-  const zoomSpeed = 0.2
-  scale.value = Math.min(scale.value * (1 + zoomSpeed), 5)
-}
-
-// 缩小按钮功能
-function zoomOut() {
-  const zoomSpeed = 0.2
-  scale.value = Math.max(scale.value / (1 + zoomSpeed), 0.1)
-}
-
-// 重置视图（回到初始位置和缩放）
-// 完善重置逻辑
-const resetView = async () => {
-  // 重置基础状态
-  offsetX.value = 0
-  offsetY.value = 0
-  scale.value = 1
-
-  // 等待DOM更新完成
-  await nextTick()
-}
-
-// 新增方法
-const createNewTitle = () => {
-  canvasStore.createTitle(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
-}
-
-const createNewMarkdown = () => {
-  // 在视图中心创建markdown
-  canvasStore.createMarkdown(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
-}
-const createNewText = () => {
-  const options={
-    type: 'text',
-    content: '请输入内容',
-    x: areaStore.windowCenterInCanvas.x,
-    y: areaStore.windowCenterInCanvas.y,
+const handleKeyDown = (e) => {
+  // 仅在按下Delete键且有选中元素时执行
+  if (e.key === 'Delete' && canvasStore.selectedElementIds.size > 0) {
+    elementStore.deleteSelectedElements();
   }
-  elementStore.createElement(options)
-}
-
-// 删除所有数据
-function clearAllData() {
-  canvasStore.clearAllData()
-}
-
-function showLog() {
-  console.log(canvasStore.components)
-}
+};
 onMounted(() => {
   // 监听全局键盘事件
-  const handleKeyDown = (e) => {
-    // 仅在按下Delete键且有选中元素时执行
-    if (e.key === 'Delete' && canvasStore.selectedElementIds.size > 0) {
-      elementStore.deleteSelectedElements();
-    }
-  };
-
   window.addEventListener('keydown', handleKeyDown);
-  onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeyDown);
-  });
 })
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+});
 
-// 导出数据
-const exportData = async () => {
-  try {
-    const data = await canvasDB.exportData();
-    if (!data) {
-      alert("没有可导出的数据");
-      return;
-    }
-
-    // 转换为JSON字符串
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    // 创建下载链接
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `canvas-backup-${new Date().getTime()}.json`;
-    document.body.appendChild(a);
-    a.click();
-
-    // 清理资源
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  } catch (error) {
-    console.error("导出失败:", error);
-    alert("导出数据失败，请查看控制台");
-  }
-};
-
-// 触发导入文件选择
-const triggerImport = () => {
-  document.getElementById("importFile").click();
-};
-
-// 处理导入数据
-const handleImport = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  try {
-    // 读取文件内容
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-
-        // 验证导入数据格式
-        if (!importedData.elements || !importedData.viewState) {
-          throw new Error("无效的导入文件格式");
-        }
-
-        // 清空现有数据
-        elementStore.clearAllElements();
-        viewStore.resetView();
-
-        // 导入元素数据
-        importedData.elements.forEach(el => {
-          elementStore.elMap.set(el.id, el);
-          if (!el.parentId) elementStore.rootIds.push(el.id);
-        });
-
-        // 导入视图状态
-        viewStore.offsetX = importedData.viewState.offsetX ?? 0;
-        viewStore.offsetY = importedData.viewState.offsetY ?? 0;
-        viewStore.scale = importedData.viewState.scale ?? 1;
-
-        // 保存到数据库
-        await canvasDB.save(importedData);
-        alert("数据导入成功");
-      } catch (err) {
-        console.error("解析导入数据失败:", err);
-        alert("导入失败：" + err.message);
-      }
-    };
-    reader.readAsText(file);
-  } finally {
-    // 重置文件输入，允许重复选择同一文件
-    e.target.value = "";
-  }
-};
 </script>
 
 <style scoped>
@@ -326,54 +149,17 @@ const handleImport = async (e) => {
 /* 内部画布区域：暂时给个固定大小，方便看到 */
 
 .toolbar {
-  font-size: 13px;
   position: fixed;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-}
-
-.toolbar button {
-  font-size: 13px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  background-color: #42b983;
-  color: white;
-  cursor: pointer;
-  /*transition: background-color 0.2s;*/
-}
-.toolbar button:hover {
-  background-color: #359e75;
-}
-
-.zoom-level {
-  align-self: center;
-  color: #666;
 }
 /* 数据看板样式 */
 .log {
   position: fixed;
   top: 10px; /* 位于工具栏上方 */
   left: 5%;
-  display: flex;
-  flex-wrap: wrap; /* 允许换行，避免内容溢出 */
-  row-gap: 1px; /* 上下方向间距（行与行之间） */
-  column-gap: 20px; /* 左右方向间距（同一行元素之间） */
-  padding: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  max-width: 90vw; /* 限制最大宽度，避免超出屏幕 */
-  font-size: 13px;
-  color: #333;
 }
 </style>
