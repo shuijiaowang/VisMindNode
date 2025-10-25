@@ -197,8 +197,8 @@ const isElementInRect = (element, rect) => {
   min-height: 1000000px;
   border: 1px solid #ccc; /* 加个边框，更明显 */
   background-color: #fff;
-  background-image: linear-gradient(#eee 1px, transparent 1px),
-  linear-gradient(90deg, #eee 1px, transparent 1px);
+  background-image: linear-gradient(#eeeeee 1px, transparent 1px),
+  linear-gradient(90deg, #eeeeee 1px, transparent 1px);
   background-size: 20px 20px;
   position: absolute;
   top: 50%;

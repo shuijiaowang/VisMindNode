@@ -62,12 +62,12 @@ const resetView = async () => {
 
 // 新增方法
 const createNewTitle = () => {
-  canvasStore.createTitle(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
+  elementStore.createTitle(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
 }
 
 const createNewMarkdown = () => {
   // 在视图中心创建markdown
-  canvasStore.createMarkdown(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
+  elementStore.createMarkdown(areaStore.windowCenterInCanvas.x, areaStore.windowCenterInCanvas.y)
 }
 const createNewText = () => {
   const options={

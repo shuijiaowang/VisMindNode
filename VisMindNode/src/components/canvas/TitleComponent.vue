@@ -14,32 +14,30 @@
       @mousedown.stop="startDrag"
 
   >
-    <!-- 拖拽手柄 -->
-    <div class="drag-handle" @mousedown.stop="startDrag">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="5" y1="9" x2="19" y2="9"></line>
-        <line x1="5" y1="15" x2="19" y2="15"></line>
-      </svg>
-    </div>
     <!-- 可编辑的输入框，失去焦点时更新内容 -->
-    <input
+    <textarea
         v-model="currentContent"
-        type="text"
         @blur="handleBlur"
-        ref="titleInput"
-        class="title-input"
+        @input="adjustWidth"
+        ref="textInput"
+        class="text-input"
         @mousedown.stop
-        :placeholder="content || '双击编辑标题'"
-    >
+        :placeholder="content || '双击6'"
+        :rows="Math.max(1, currentContent.split('\n').length)"
+        :cols="currentContent.split('\n')[0].length + 2"
+        wrap="off"
+        autocomplete="off"
+        spellcheck="false"
+    />
   </div>
 </template>
 
 <script setup>
-import {computed, defineEmits, defineProps, nextTick, onMounted, ref} from 'vue'
+import {computed, defineEmits, defineProps, nextTick, onMounted, ref, watch} from 'vue'
 import {useCanvasStore} from "@/stores/canvasStore.js";
 const canvasStore = useCanvasStore()
 import { useDraggable } from '@/composables/useDraggable.js'
-const title = computed(() => canvasStore.titles.get(props.id));
+
 // 接收从父组件传来的属性
 const props = defineProps({
   // 标题的唯一标识
@@ -67,6 +65,11 @@ const props = defineProps({
     default: () => ({}) // 默认空对象
   }
 })
+
+// 本地内容变量，用于双向绑定
+const currentContent = ref(props.content)
+// 输入框引用，用于聚焦
+const textInput = ref(null)
 const isSelected = computed(() => {
   return canvasStore.selectedElementIds.has(props.id);
 });
@@ -74,82 +77,78 @@ const isSelected = computed(() => {
 // 定义要触发的事件
 const emit = defineEmits(['update:content'])
 
-// 本地内容变量，用于双向绑定
-const currentContent = ref(props.content)
-
-// 输入框引用，用于聚焦
-const titleInput = ref(null)
-
 // 初始化拖拽逻辑（指定组件类型为title）
-const { isDragging, startDrag, onDrag, endDrag } = useDraggable(
+const { isDragging, startDrag } = useDraggable(
     'title',
     props.id,
     props.x,
     props.y
 )
-
-// 2. 新增：样式编辑方法（示例：点击标题显示样式面板） //这种可以单独在页面工具栏中进行修改？/可能还需要一个单独的输入框组件复用，负责输入文字
-const showStylePanel = () => {
-  // 实际项目中可替换为弹出样式编辑面板
-  const newFontSize = prompt('设置字体大小(px)', props.style.fontSize)
-  if (newFontSize) {
-    // 调用store方法更新样式
-    canvasStore.updateTitleStyle(props.id, { fontSize: Number(newFontSize) })
+// 调整文本框宽度以适应内容
+const adjustWidth = () => {
+  if (textInput.value) {
+    // 临时设置为auto获取实际宽度
+    textInput.value.style.width = '100%'
+    // 加上一些额外宽度作为缓冲
+    const width = textInput.value.scrollWidth + 10
+    // 确保不小于最小宽度
+    textInput.value.style.width = `${Math.max(width, 50)}px`
   }
 }
 
-// 当组件挂载后自动聚焦
-onMounted(() => {
-
+// 监听内容变化调整宽度
+watch(currentContent, () => {
+  nextTick(adjustWidth)
 })
 
-// 失去焦点时更新内容
 const handleBlur = () => {
   emit('update:content', currentContent.value)
 }
+
+// 组件挂载后初始化宽度
+onMounted(() => {
+  nextTick(adjustWidth)
+})
 </script>
 
 <style scoped>
 .title-component {
   padding: 8px;
   border-radius: 4px;
+  border: #42b983  solid 1px;
   /*transition: all 0.2s; 会导致拖拽卡顿*/
 }
 .title-component:hover {
   border-color: #ddd;
   background-color: rgba(255, 255, 255, 0.7);
+  padding: 25px;
 }
 
 .title-component.dragging {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: #42b983;
 }
-.drag-handle {
-  display: inline-block;
-  margin-right: 8px;
-  color: #999;
-  cursor: move;
-  vertical-align: middle;
-  opacity: 0.7;
-}
-
-.title-input {
+.text-input {
   border: none;
   background: transparent;
   outline: none;
-  padding: 4px 8px;
-  min-width: 200px;
-  font-weight: bold;
-  vertical-align: middle;
-  border: #42b983 1px solid;
+  font-size: inherit;
+  color: inherit;
+  resize: none;
+  line-height: 1.5;
+  padding: 4px 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap; /* 禁止自动换行 */
+  overflow: visible; /* 允许内容溢出显示 */
 }
 
-.title-input:focus {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 2px;
+.text-input::placeholder {
+  color: #999;
+  font-style: italic;
+  opacity: 0.7;
 }
-.title-component.selected {
-  outline: 2px solid #42b983; /* Vue品牌色作为选中高亮 */
-  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.3);
+
+.text-input:focus {
+  background-color: rgba(255, 255, 255, 0.95);
 }
 </style>

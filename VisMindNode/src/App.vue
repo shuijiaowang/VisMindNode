@@ -32,4 +32,5 @@ html, body {
   height: 100%;
   width: 100%;
 }
+/*输入框有默认大小吗*/
 </style>

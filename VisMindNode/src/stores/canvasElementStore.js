@@ -71,7 +71,7 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             x,
             y,
             content,
-            style: { fontSize: 16, color: '#333' }
+            style: { fontSize: 24, color: '#333' }
         })
     }
     // 创建Markdown元素

@@ -29,7 +29,7 @@
 
 <script setup>
 // 保持原有逻辑不变
-import {computed, ref, nextTick, watch, onMounted} from "vue";
+import {computed, ref,defineEmits, nextTick, watch, onMounted} from "vue";
 import {useDraggable} from "@/composables/useDraggable.js";
 import {useCanvasStore} from "@/stores/canvasStore.js";
 const canvasStore = useCanvasStore()
@@ -44,6 +44,7 @@ const props = defineProps({
 
 const currentContent = ref(props.content)
 const textInput = ref(null)
+
 const isSelected = computed(() => canvasStore.selectedElementIds.has(props.id))
 const emit = defineEmits(['update:content'])
 
@@ -75,13 +76,6 @@ const handleBlur = () => {
   emit('update:content', currentContent.value)
 }
 
-const handleDblClick = () => {
-  nextTick(() => {
-    textInput.value?.focus()
-    adjustWidth() // 聚焦时调整一次宽度
-  })
-}
-
 // 组件挂载后初始化宽度
 onMounted(() => {
   nextTick(adjustWidth)
@@ -90,18 +84,20 @@ onMounted(() => {
 
 <style scoped>
 .text-component {
-  padding: 25px 6px 6px 6px;
+  padding: 8px 10px;
   border-radius: 6px;
   transition: all 0.15s ease;
   width: auto; /* 让父容器宽度自适应内容 */
   min-width: 100px; /* 调整最小宽度为更合理的值 */
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: #c0c0c0 1px solid;
   /* 移除overflow限制，允许内容撑开宽度 */
 }
 
 .text-component:hover {
   background-color: rgba(255, 255, 255, 0.8);
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 25px; /*悬浮，扩大，方便选中拖拽等*/
 }
 
 .text-component.selected {

@@ -101,8 +101,6 @@ export const useCanvasStore = defineStore('canvas', () => {
         toggleElementSelection: (id, isCtrlPressed) => elementStore.toggleElementSelection(id, isCtrlPressed),
         clearAllSelections: () => elementStore.clearAllSelections(),
 
-        // 元素创建
-        createTitle: (x, y, content) => elementStore.createTitle(x, y, content),
-        createMarkdown: (x, y, content) => elementStore.createMarkdown(x, y, content),
+
     }
 })
