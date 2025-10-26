@@ -22,7 +22,6 @@
         :y="elementStore.elMap.get(id).y"
         :content="elementStore.elMap.get(id).content"
         :style="elementStore.elMap.get(id).style"
-        @update:content="(content) => elementStore.elMap.get(id).content = content"
     />
     <!-- 新增：Markdown组件 -->
     <MarkdownComponent

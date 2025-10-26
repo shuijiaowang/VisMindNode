@@ -13,13 +13,14 @@
         :offsetY="offsetY"
         :scale="scale"
     />
-        <div class="toolbar">
-          <BottomToolbar/>
-        </div>
-        <!-- 数据看板 -->
-        <div class="log">
-              <DataDashboard />
-        </div>
+    <div class="toolbar">
+      <BottomToolbar/>
+    </div>
+    <!-- 数据看板 -->
+    <div class="log">
+      <DataDashboard />
+    </div>
+    <DirectoryView/>
 
   </div>
 
@@ -27,16 +28,16 @@
 
 <script setup>
 // 导入必要的工具
-import {nextTick, onMounted, onUnmounted, ref, toRefs} from 'vue'
+import {onMounted, onUnmounted, ref, toRefs} from 'vue'
 import { useCanvasStore } from '@/stores/canvasStore'
 import CanvasContent from "@/components/CanvasContent.vue";
 import {useCanvasElementStore} from "@/stores/canvasElementStore.js";
 import {useCanvasAreaStore} from "@/stores/canvasAreaStore.js";
 import {useCanvasViewStore} from "@/stores/canvasViewStore.js";
 import {useCanvasMouseStore} from "@/stores/canvasMouseStore.js";
-import {canvasDB} from "@/utils/indexedDB.js";
 import DataDashboard from "@/components/canvasExtras/DataDashboard.vue";
 import BottomToolbar from "@/components/canvasExtras/BottomToolbar.vue";
+import DirectoryView from "@/components/directory/DirectoryView.vue";
 
 // 获取画布全局状态（偏移量和缩放）
 const canvasStore = useCanvasStore()

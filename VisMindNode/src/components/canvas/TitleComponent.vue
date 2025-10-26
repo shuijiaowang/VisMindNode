@@ -14,29 +14,22 @@
       @mousedown.stop="startDrag"
 
   >
-    <!-- 可编辑的输入框，失去焦点时更新内容 -->
-    <textarea
-        v-model="currentContent"
-        @blur="handleBlur"
-        @input="adjustWidth"
-        ref="textInput"
-        class="text-input"
-        @mousedown.stop
-        :placeholder="content || '双击6'"
-        :rows="Math.max(1, currentContent.split('\n').length)"
-        :cols="currentContent.split('\n')[0].length + 2"
-        wrap="off"
-        autocomplete="off"
-        spellcheck="false"
+    <TextEditor
+        :id="props.id"
+        v-model="props.content"
+        placeholder="请输入标题"
+        :minWidth="100"
+        :style="{ fontSize:`${style.fontSize || '18px'}`, color: 'black' }"
     />
   </div>
 </template>
 
 <script setup>
-import {computed, defineEmits, defineProps, nextTick, onMounted, ref, watch} from 'vue'
+import {computed, defineEmits, defineProps, nextTick, onMounted, ref, toRef, watch} from 'vue'
 import {useCanvasStore} from "@/stores/canvasStore.js";
 const canvasStore = useCanvasStore()
 import { useDraggable } from '@/composables/useDraggable.js'
+import TextEditor from "@/components/canvas/TextEditor.vue";
 
 // 接收从父组件传来的属性
 const props = defineProps({
@@ -66,17 +59,10 @@ const props = defineProps({
   }
 })
 
-// 本地内容变量，用于双向绑定
-const currentContent = ref(props.content)
-// 输入框引用，用于聚焦
-const textInput = ref(null)
+
 const isSelected = computed(() => {
   return canvasStore.selectedElementIds.has(props.id);
 });
-
-// 定义要触发的事件
-const emit = defineEmits(['update:content'])
-
 // 初始化拖拽逻辑（指定组件类型为title）
 const { isDragging, startDrag } = useDraggable(
     'title',
@@ -84,31 +70,6 @@ const { isDragging, startDrag } = useDraggable(
     props.x,
     props.y
 )
-// 调整文本框宽度以适应内容
-const adjustWidth = () => {
-  if (textInput.value) {
-    // 临时设置为auto获取实际宽度
-    textInput.value.style.width = '100%'
-    // 加上一些额外宽度作为缓冲
-    const width = textInput.value.scrollWidth + 10
-    // 确保不小于最小宽度
-    textInput.value.style.width = `${Math.max(width, 50)}px`
-  }
-}
-
-// 监听内容变化调整宽度
-watch(currentContent, () => {
-  nextTick(adjustWidth)
-})
-
-const handleBlur = () => {
-  emit('update:content', currentContent.value)
-}
-
-// 组件挂载后初始化宽度
-onMounted(() => {
-  nextTick(adjustWidth)
-})
 </script>
 
 <style scoped>
@@ -127,6 +88,11 @@ onMounted(() => {
 .title-component.dragging {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: #42b983;
+}
+.title-component.selected {
+  outline: 2px solid #42b983;
+  border-color: #42b983;
+  background-color: rgba(255, 255, 255, 0.7);
 }
 .text-input {
   border: none;

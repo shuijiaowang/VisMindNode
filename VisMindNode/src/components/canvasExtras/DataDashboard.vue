@@ -50,7 +50,7 @@ const mouseStore=  useCanvasMouseStore()
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  max-width: 90vw; /* 限制最大宽度，避免超出屏幕 */
+  max-width: 50vw; /* 限制最大宽度，避免超出屏幕 */
   font-size: 13px;
   color: #333;
 }

@@ -11,6 +11,8 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
     const  elMap = reactive(new Map()) // 所有元素
     let rootIds = reactive([]) // 顶级元素ID（parentId为null）
     const selectedElementIds = reactive(new Set()) // 选中的元素ID
+    const selectedDirTitleId = ref(0) //当前目录选中的标题ID //新元素创建时会把它设置为父id
+    const selectedShowDirTitleId=ref(0) //当前工作的标题ID //目录展示的父级id
 
     // 组件类型配置（核心：统一管理所有元素类型）
     const componentConfigs = {
@@ -121,6 +123,13 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
             return acc
         }, {})
     })
+
+    const titleIds = computed(() => {
+        // 将 Map 的值转换为数组，再过滤出类型为 'title' 的元素，最后提取 id
+        return Array.from(elMap.values())
+            .filter(el => el.type === 'title')
+            .map(el => el.id)
+    })
     // 按类型过滤可见元素（标题/Markdown）
     const visibleTitleIds = computed(() => {
         return visibleElements.value
@@ -200,12 +209,16 @@ export const useCanvasElementStore = defineStore('canvasElement', () => {
         createTitle,
         createMarkdown,
         updateComponentPosition,
+        updateElement,
         toggleElementSelection,
         clearAllSelections,
         deleteSelectedElements,
-        clearAllElements, // 添加这一行，暴露clearAllElements方法
-        getComponentPosition, // 之前可能漏掉了这个方法的暴露，根据需要添加
-        batchUpdateComponentPositions, // 同样检查是否需要暴露
-        generateTestComponents // 确保这个方法也被正确暴露
+        clearAllElements, //
+        getComponentPosition, //
+        batchUpdateComponentPositions, //
+        generateTestComponents ,//
+        selectedDirTitleId,
+        selectedShowDirTitleId,
+        titleIds,
     }
 })

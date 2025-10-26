@@ -13,16 +13,12 @@
       @mousedown.stop="startDrag"
       @dblclick="handleDblClick"
   >
-    <textarea
-        v-model="currentContent"
-        @blur="handleBlur"
-        @input="adjustWidth"
-        ref="textInput"
-        class="text-input"
-        @mousedown.stop
-        :placeholder="content || '双击添加文本'"
-        :rows="Math.max(1, currentContent.split('\n').length)"
-        wrap="off"
+    <TextEditor
+        :id="props.id"
+        v-model="props.content"
+        placeholder="请输入标题"
+        :minWidth="100"
+        :style="{ fontSize:`${style.fontSize || '18px'}`, color: 'black' }"
     />
   </div>
 </template>
@@ -32,6 +28,7 @@
 import {computed, ref,defineEmits, nextTick, watch, onMounted} from "vue";
 import {useDraggable} from "@/composables/useDraggable.js";
 import {useCanvasStore} from "@/stores/canvasStore.js";
+import TextEditor from "@/components/canvas/TextEditor.vue";
 const canvasStore = useCanvasStore()
 
 const props = defineProps({
@@ -42,44 +39,13 @@ const props = defineProps({
   style: { type: Object, default: () => ({}) }
 })
 
-const currentContent = ref(props.content)
-const textInput = ref(null)
-
 const isSelected = computed(() => canvasStore.selectedElementIds.has(props.id))
-const emit = defineEmits(['update:content'])
-
 const { isDragging, startDrag } = useDraggable(
     'text',
     props.id,
     props.x,
     props.y
 )
-
-// 调整文本框宽度以适应内容
-const adjustWidth = () => {
-  if (textInput.value) {
-    // 临时设置为auto获取实际宽度
-    textInput.value.style.width = 'auto'
-    // 加上一些额外宽度作为缓冲
-    const width = textInput.value.scrollWidth + 10
-    // 确保不小于最小宽度
-    textInput.value.style.width = `${Math.max(width, 100)}px`
-  }
-}
-
-// 监听内容变化调整宽度
-watch(currentContent, () => {
-  nextTick(adjustWidth)
-})
-
-const handleBlur = () => {
-  emit('update:content', currentContent.value)
-}
-
-// 组件挂载后初始化宽度
-onMounted(() => {
-  nextTick(adjustWidth)
-})
 </script>
 
 <style scoped>
@@ -109,30 +75,5 @@ onMounted(() => {
 .text-component.dragging {
   opacity: 0.85;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-}
-
-.text-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: inherit;
-  color: inherit;
-  resize: none;
-  line-height: 1.5;
-  padding: 4px 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  white-space: nowrap; /* 禁止自动换行 */
-  overflow: visible; /* 允许内容溢出显示 */
-  min-width: 100px; /* 最小宽度 */
-}
-
-.text-input::placeholder {
-  color: #999;
-  font-style: italic;
-  opacity: 0.7;
-}
-
-.text-input:focus {
-  background-color: rgba(255, 255, 255, 0.95);
 }
 </style>
