@@ -49,7 +49,7 @@
     <!-- 框选视觉反馈：修复视觉坐标计算（结合画布偏移和缩放） -->
     <div
         class="box-selector"
-        v-if="isBoxSelecting"
+        v-if="canvasStore.dragType === 'boxSelect'"
         :style="{
       // 核心修正：逻辑坐标转物理坐标时需叠加画布偏移量，并应用缩放
       left: `${(Math.min(boxRect.x1, boxRect.x2))}px`,
@@ -103,25 +103,24 @@ const handleDblClick = (e) => {
 };
 // --------------------处理点击事件-------------------
 const handleCanvasClick = (e) => {
-  if (canvasStore.isDragEvent) return
+  if (canvasStore.dragType !== null) return
   // 只有点击画布空白区域才取消选中,操蛋，框选结束后又触发click事件给清空了
   if (e.target === e.currentTarget) {
     canvasStore.clearAllSelections();
   }
 };
 //--------------------处理框选事件---------------------
-const isBoxSelecting = ref(false);
 const boxRect = ref({ x1: 0, y1: 0, x2: 0, y2: 0 });
 // 开始框选
 // 开始框选（修正初始坐标为逻辑坐标）
 // 开始框选（修正坐标计算：加入offsetX/offsetY抵消画布平移）
 const startBoxSelect = (e) => {
+  if (canvasStore.dragType !== null) return;
   if ((e.ctrlKey || e.metaKey) && e.target === e.currentTarget) {
 
     e.preventDefault();
     e.stopPropagation();
-    isBoxSelecting.value = true;
-
+    canvasStore.setDragType('boxSelect'); // 标记为框选拖拽
     // 直接使用仓库中的鼠标逻辑坐标作为起点（无需手动计算）
     boxRect.value = {
       x1: mouseStore.mousePositionInCanvas.x,
@@ -137,22 +136,18 @@ const startBoxSelect = (e) => {
 };
 
 const onBoxSelectMove = (e) => {
-  if (!isBoxSelecting.value) return;
-  canvasStore.setIsDragEvent(true) //标记当前为拖拽事件
-  console.log('框选中...',canvasStore.isDragEvent) //为什么是undefined
-
+  if (canvasStore.dragType !== 'boxSelect') return;
+  console.log("框选中")
   // 直接复用仓库中的实时鼠标逻辑坐标（无需手动计算）
   boxRect.value.x2 = mouseStore.mousePositionInCanvas.x;
   boxRect.value.y2 = mouseStore.mousePositionInCanvas.y;
-  console.log('框选中...', boxRect.value)
 };
 // 结束框选（保持逻辑不变，使用简化后的坐标）
 const endBoxSelect = (e) => {
-  if (!isBoxSelecting.value) return;
+  if (canvasStore.dragType !== 'boxSelect') return;
 
   document.removeEventListener('mousemove', onBoxSelectMove);
   document.removeEventListener('mouseup', endBoxSelect);
-  isBoxSelecting.value = false;
 
   const rect = {
     minX: Math.min(boxRect.value.x1, boxRect.value.x2),
@@ -174,7 +169,10 @@ const endBoxSelect = (e) => {
     selectedIds.forEach(id=>elementStore.selectedElementIds.add(id))
   }
   setTimeout(() => {
-    canvasStore.setIsDragEvent(false) // 重置store标记
+    if (canvasStore.dragType === 'boxSelect') {
+      canvasStore.setDragType(null);
+      console.log("结束框选")
+    }
   }, 100)
 };
 

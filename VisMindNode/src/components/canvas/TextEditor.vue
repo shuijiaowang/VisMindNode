@@ -10,6 +10,7 @@
       @mousedown.stop
       :placeholder="placeholder"
       :rows="computedRows"
+      :cols="1"
       :style="mergedStyle"
       wrap="soft"
       autocomplete="off"
@@ -85,9 +86,10 @@ const adjustWidth = () => {
   // 临时设置为100%获取实际宽度
   textareaRef.value.style.width = '100%'
   // 计算实际宽度（加缓冲）
-  const width = textareaRef.value.scrollWidth + 10
+  const width = textareaRef.value.scrollWidth + 20
   // 应用计算后的宽度（不小于最小宽度）
   textareaRef.value.style.width = `${Math.max(width, props.minWidth)}px`
+
 }
 
 // 输入事件处理
@@ -136,8 +138,10 @@ onMounted(() => {
   outline: none;
   resize: none;
   line-height: 1.5;
-  padding: 4px 0;
+  padding: 2px 0 ;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /*字体大小继承*/
+  font-size: inherit;
 }
 
 .text-editor::placeholder {

@@ -50,29 +50,32 @@ const { offsetX, offsetY, scale } =toRefs(viewStore)
 
 
 //-----------------------------拖拽位移事件处理----------------------------
-// 拖拽状态管理
-const isDragging = ref(false) // 是否正在拖拽
 //拖拽坐标管理
 let dragX = 0, dragY = 0
 const startPos = ref({ x: 0, y: 0 }) // 记录鼠标刚按下时的位置（用来计算移动了多少距离）
 
 // 鼠标按下：开始拖拽
 function startDrag(e) {
-  //判断是当前元素才处理？
-  isDragging.value = true
-  // 记录初始位置（减去当前偏移量，避免拖拽起点跳变）
-  startPos.value.x = e.clientX - offsetX.value
-  startPos.value.y = e.clientY - offsetY.value
+  if (e.target.classList.contains('infinite-canvas')){
+    if (canvasStore.dragType !== null) return;
+    canvasStore.setDragType('canvas'); // 标记为画布拖拽
+    // 记录初始位置（减去当前偏移量，避免拖拽起点跳变）
+    startPos.value.x = e.clientX - offsetX.value
+    startPos.value.y = e.clientY - offsetY.value
+  }
 }
 
 // 鼠标移动：更新偏移量（实现拖拽）
 function onDrag(e) {
-  if (!isDragging.value) return // 非拖拽状态不处理
-  // 计算新的偏移量（当前鼠标位置 - 初始位置）
-  dragX = e.clientX - startPos.value.x
-  dragY = e.clientY - startPos.value.y
-  //帧节流更新
-  requestAnimationFrame(updatePosition)
+  // console.log("??????????,这里会一直执行")
+  if (canvasStore.dragType === 'canvas') {
+    // 计算新的偏移量（当前鼠标位置 - 初始位置）
+    dragX = e.clientX - startPos.value.x
+    dragY = e.clientY - startPos.value.y
+    //帧节流更新
+    requestAnimationFrame(updatePosition)
+  }
+
 }
 function updatePosition() {
   offsetX.value = dragX
@@ -80,7 +83,9 @@ function updatePosition() {
 }
 // 鼠标松开/离开：结束拖拽
 function endDrag() {
-  isDragging.value = false
+  if (canvasStore.dragType === 'canvas') {
+    canvasStore.setDragType(null); // 重置拖拽类型
+  }
 }
 // ----------------------------鼠标滚轮缩放事件处理----------------------------
 function handleZoom(e) {

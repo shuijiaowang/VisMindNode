@@ -18,8 +18,9 @@
         :id="props.id"
         v-model="props.content"
         placeholder="请输入标题"
-        :minWidth="100"
+        :minWidth="50"
         :style="{ fontSize:`${style.fontSize || '18px'}`, color: 'black' }"
+        style="padding: 4px 20px"
     />
   </div>
 </template>

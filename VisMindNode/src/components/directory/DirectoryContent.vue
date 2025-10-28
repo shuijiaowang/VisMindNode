@@ -8,7 +8,7 @@
     </div>
     <div class="directory-list">
       <!-- 递归渲染顶级标题 -->
-      <template v-for="id in elementStore.titleIds" :key="id">
+      <template v-for="id in elementStore.selectedShowDirTitleIds" :key="id">
         <DirectoryTitleItem
             :id="id"
             :level="0"

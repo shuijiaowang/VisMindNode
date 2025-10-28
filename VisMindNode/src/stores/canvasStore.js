@@ -76,7 +76,11 @@ export const useCanvasStore = defineStore('canvas', () => {
     const setIsDragEvent=(status)=> {
         isDragEvent.value = status
     }
-
+    // 拖拽类型：null（无拖拽）、'canvas'（画布平移）、'element'（元素拖拽）、'directory'（目录拖拽）、'boxSelect'（框选）
+    const dragType = ref(null)
+    const setDragType = (type) => {
+        dragType.value = type
+    }
     onMounted(async () => {
         await canvasDB.init() // 初始化数据库
         await loadFromDB()
@@ -84,6 +88,8 @@ export const useCanvasStore = defineStore('canvas', () => {
 
 
     return {
+        dragType,
+        setDragType,
         saveToDB,
         loadFromDB,
         clearAllData,
