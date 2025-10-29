@@ -8,7 +8,7 @@
     </div>
     <div class="directory-list">
       <!-- 递归渲染顶级标题 -->
-      <template v-for="id in elementStore.selectedShowDirTitleIds" :key="id">
+      <template v-for="id in directoryStore.selectedShowDirTitleIds" :key="id">
         <DirectoryTitleItem
             :id="id"
             :level="0"
@@ -22,8 +22,10 @@
 <script setup>
 import { useCanvasElementStore } from '@/stores/canvasElementStore'
 import DirectoryTitleItem from './DirectoryTitleItem.vue'
+import {useCanvasDirectoryStore} from "@/stores/canvasDirectoryStore.js";
 
 const elementStore = useCanvasElementStore()
+const directoryStore =useCanvasDirectoryStore()
 
 // 刷新目录
 const refresh = () => {

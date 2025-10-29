@@ -4,7 +4,11 @@
 
   >
     <!-- 标题行（包含缩进、按钮、内容、操作按钮） -->
-    <div class="title-row">
+    <div class="title-row"
+         @dragover.stop="handleDragOver"
+         @dragleave.stop="handleDragLeave"
+         @drop.stop="handleDrop"
+    >
       <!-- 缩进线 -->
       <div class="indent-guide" :style="{ width: `${level * 24}px` }"></div>
 
@@ -14,8 +18,6 @@
           @click.stop="handleDotClick"
           @dragstart.stop="handleDragStart"
           @dragend.stop="handleDragEnd"
-          @dragover.stop="handleDragOver"
-          @dragleave.stop="handleDragLeave"
           draggable="true"
       ></div>
       <!-- 展开/折叠按钮 -->
@@ -82,7 +84,8 @@ import { ref, computed, nextTick } from 'vue'
 import { useCanvasElementStore } from '@/stores/canvasElementStore'
 import { useCanvasViewStore } from '@/stores/canvasViewStore'
 import TextEditor from '@/components/canvas/TextEditor.vue'
-import {useCanvasStore} from "@/stores/canvasStore.js";  // 引入TextEditor组件
+import {useCanvasStore} from "@/stores/canvasStore.js";
+import {useCanvasDirectoryStore} from "@/stores/canvasDirectoryStore.js";  // 引入TextEditor组件
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -90,6 +93,7 @@ const props = defineProps({
 })
 
 const elementStore = useCanvasElementStore()
+const directoryStore =useCanvasDirectoryStore()
 const viewStore = useCanvasViewStore()
 const canvasStore=useCanvasStore()
 const element = computed(() => elementStore.elMap.get(props.id))
@@ -98,7 +102,7 @@ const editInput = ref(null)  // 指向TextEditor组件
 
 // 选中状态（当前操作的标题）
 const isSelected = computed(() =>
-    elementStore.selectedDirTitleId === props.id
+    directoryStore.selectedDirTitleId === props.id
 )
 
 // 切换展开/折叠
@@ -115,12 +119,10 @@ const handleClick = (e) => {
 
 // 双击选中
 const handleDbClick = () => {
-  elementStore.selectedDirTitleId = props.id
+  directoryStore.selectedDirTitleId = props.id // 选中当前父级标题
 }
 
 const handleEnter=(e)=>{
-  //如果是shift+enter，会是创建一个新的标题
-  //但是textarea中两种回车都是换行
   console.log("item：回车事件")
 }
 
@@ -132,95 +134,142 @@ const addChild = () => {
   // 建立父子关系
   elementStore.addChild(props.id, childId)
 }
+
 // 圆点点击事件
 const handleDotClick = (e) => {
   console.log('圆点被点击', '元素ID:', props.id)
   // 可添加自定义逻辑：如选中元素、显示上下文菜单等
+  viewStore.jumpToElement(props.id)
 }
 
-// 新增：拖拽状态管理
-const dragIndicator = ref(null) // 可能的值: 'top', 'bottom', 'child', null
-const draggedItemId = ref(null)
+// 新增：使用更可靠的拖拽状态管理
+const dragState = ref({
+  draggedItemId: null,
+  currentIndicator: null,
+  isDraggingOver: false
+})
+const dragIndicator = ref(null)
+
 
 // 拖拽开始事件
 const handleDragStart = (e) => {
   e.stopPropagation();
   if(canvasStore.dragType!==null) return
-  canvasStore.setDragType('directory'); // 标记为目录拖拽
-  console.log('开始拖拽', '元素ID:', props.id)
-  // 存储拖拽的元素ID，供拖拽结束时使用
+  canvasStore.setDragType('directory');
+  // 存储拖拽的元素ID
+  dragState.value.draggedItemId = props.id
   e.dataTransfer.setData('text/plain', props.id)
-  // 可添加拖拽样式（如半透明）
   e.target.classList.add('dragging')
+  e.dataTransfer.effectAllowed = 'move'
+  // 设置拖拽图像（可选，增强视觉反馈）
+  const dragImage = document.createElement('div')
+  dragImage.textContent = element.value.content || '拖拽中...'
+  dragImage.style.position = 'absolute'
+  dragImage.style.left = '-9999px'
+  document.body.appendChild(dragImage)
+  e.dataTransfer.setDragImage(dragImage, 0, 0)
 }
+
+// 处理拖拽经过事件
 // 处理拖拽经过事件
 const handleDragOver = (e) => {
-  e.preventDefault() // 允许放置
-  draggedItemId.value = e.dataTransfer.getData('text/plain')
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+
+  const sourceId = dragState.value.draggedItemId || e.dataTransfer.getData('text/plain')
+
   // 避免自己拖自己
-  if (draggedItemId.value === props.id) {
+  if (sourceId === props.id) {
+    dragState.value.currentIndicator = null
     dragIndicator.value = null
     return
   }
 
-  // 获取当前元素的位置信息
+  // 计算位置比例
   const rect = e.currentTarget.getBoundingClientRect()
   const itemHeight = rect.height
-  const relativeY = e.clientY - rect.top // 鼠标在当前项内的Y坐标
-
-  // 计算位置比例（0-1）
+  const relativeY = e.clientY - rect.top
   const positionRatio = relativeY / itemHeight
 
-  // 判断提示类型
+  // 更新指示器状态
   if (positionRatio < 0.3) {
-    // 上半部分 - 显示顶部提示线（插入到当前项上方，同级）
-    dragIndicator.value = 'top'
+    dragState.value.currentIndicator = 'top'
   } else if (positionRatio > 0.7) {
-    // 下半部分 - 显示底部提示线（插入到当前项下方，同级）
-    dragIndicator.value = 'bottom'
+    dragState.value.currentIndicator = 'bottom'
   } else {
-    // 中间部分 - 显示子项提示线（作为当前项的子项）
-    dragIndicator.value = 'child'
+    dragState.value.currentIndicator = 'child'
   }
+
+  dragIndicator.value = dragState.value.currentIndicator
+  dragState.value.isDraggingOver = true
 }
+
+
+// 处理拖拽离开事件
+
 // 处理拖拽离开事件
 const handleDragLeave = (e) => {
-  // 检查鼠标是否真的离开当前元素
-  const relatedTarget = e.relatedTarget
+  const relatedTarget = e.relatedTarget;
+  // 检查是否真的离开当前元素及其子元素
   if (!e.currentTarget.contains(relatedTarget)) {
-    dragIndicator.value = null
+    dragState.value.isDraggingOver = false
+    // 延迟隐藏指示器，避免快速移动时的闪烁
+    setTimeout(() => {
+      if (!dragState.value.isDraggingOver) {
+        dragIndicator.value = null
+      }
+    }, 100)
   }
+}
+
+// 新增：处理drop事件（关键修复）
+const handleDrop = (e) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  const sourceId = dragState.value.draggedItemId || e.dataTransfer.getData('text/plain')
+  const targetId = props.id
+
+  if (sourceId && sourceId !== targetId && dragState.value.currentIndicator) {
+    console.log('执行拖拽操作', '源ID:', sourceId, '目标ID:', targetId, '位置:', dragState.value.currentIndicator)
+
+    switch(dragState.value.currentIndicator) {
+      case 'top':
+        directoryStore.moveBefore(sourceId, targetId)
+        break
+      case 'bottom':
+        directoryStore.moveAfter(sourceId, targetId)
+        break
+      case 'child':
+        directoryStore.moveAsChild(sourceId, targetId)
+        break
+    }
+  }
+
+  // 重置状态
+  dragIndicator.value = null
+  dragState.value.isDraggingOver = false
 }
 
 // 修改拖拽结束事件
 const handleDragEnd = (e) => {
+  e.stopPropagation()
   if (canvasStore.dragType === 'directory') {
-    canvasStore.setDragType(null); // 重置拖拽类型
+    canvasStore.setDragType(null);
   }
-  console.log('结束拖拽', '元素ID:', props.id)
   e.target.classList.remove('dragging')
 
-  // 如果有拖拽目标和提示位置，则执行相应操作
-  if (draggedItemId.value && dragIndicator.value) {
-    const targetId = props.id
-    const sourceId = draggedItemId.value
+  // 清理临时拖拽图像
+  const dragImages = document.querySelectorAll('div[style*="left: -9999px"]')
+  dragImages.forEach(img => img.remove())
 
-    // 根据提示类型执行不同的移动操作
-    switch(dragIndicator.value) {
-      case 'top':
-        elementStore.moveBefore(sourceId, targetId)
-        break
-      case 'bottom':
-        elementStore.moveAfter(sourceId, targetId)
-        break
-      case 'child':
-        elementStore.moveAsChild(sourceId, targetId)
-        break
-    }
-  }
-  // 重置拖拽状态
-  dragIndicator.value = null
-  draggedItemId.value = null
+  // 重置所有状态
+  setTimeout(() => {
+    dragState.value.draggedItemId = null
+    dragState.value.currentIndicator = null
+    dragState.value.isDraggingOver = false
+    dragIndicator.value = null
+  }, 0)
 }
 
 </script>
@@ -305,14 +354,14 @@ const handleDragEnd = (e) => {
 
 /* 圆点样式 */
 .drag-dot {
-  height: 8px;
+  height: 16px;
   border-radius: 50%; /* 圆形 */
   background-color: #999; /* 默认灰色 */
   cursor: grab; /* 抓手图标，表示可拖拽 */
   margin: 0 4px; /* 与左右元素保持间距 */
   z-index: 10;
   width: 8px;
-  min-width: 8px;
+  min-width: 16px;
   cursor: default;
 }
 
@@ -335,4 +384,33 @@ const handleDragEnd = (e) => {
   /* 若圆点在标题内容前，可调整选择器 */
   background-color: #1890ff; /* 与选中背景色呼应的蓝色 */
 }
+/* 保持原有样式，添加拖拽提示线样式 */
+/* 拖拽提示线样式 - 解决不显示问题 */
+.drag-indicator {
+  height: 2px;
+  background-color: #1890ff;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.drag-indicator.top {
+  width: calc(100% - 48px); /* 适配缩进 */
+  margin-bottom: 2px;
+}
+
+.drag-indicator.bottom {
+  width: calc(100% - 48px);
+  margin-top: 2px;
+}
+
+.drag-indicator.child {
+  width: calc(100% - 72px); /* 子项缩进更多 */
+  margin-left: 24px; /* 子项额外缩进 */
+  margin-top: 2px;
+}
+/* 增加拖拽时的视觉反馈 */
+.title-row.dragging-over {
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
 </style>
