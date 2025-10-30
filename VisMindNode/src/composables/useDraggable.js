@@ -58,7 +58,7 @@ export function useDraggable(componentType, id, initialX, initialY) {
         e.stopPropagation()
         // 关键：阻止默认行为（如文本选择、输入框聚焦等）
         e.preventDefault()
-        canvasStore.setDragType('element'); // 标记为元素拖拽
+        // canvasStore.setDragType('element'); // 标记为元素拖拽
         hasMoved.value = false
         isDragging.value = true
         isDragEvent.value = false

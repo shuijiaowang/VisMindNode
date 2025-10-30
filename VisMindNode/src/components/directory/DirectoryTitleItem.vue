@@ -192,9 +192,9 @@ const handleDragOver = (e) => {
   const positionRatio = relativeY / itemHeight
 
   // 更新指示器状态
-  if (positionRatio < 0.3) {
+  if (positionRatio < 0.5) {
     dragState.value.currentIndicator = 'top'
-  } else if (positionRatio > 0.7) {
+  } else if (positionRatio > 0.5) {
     dragState.value.currentIndicator = 'bottom'
   } else {
     dragState.value.currentIndicator = 'child'
