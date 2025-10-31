@@ -13,7 +13,15 @@ export const useCanvasDirectoryStore = defineStore('canvasDirectory', ()=>{
     const selectedShowDirTitleIds = computed(() => {
         //判断，如果selectedDirTitleId==null，返回rootids
         //如果不是，返回它的children
-        return selectedShowDirTitleId.value === null ? elementStore.rootIds : elementStore.elMap.get(selectedShowDirTitleId.value)?.children
+        let ids=[]
+        if (selectedDirTitleId.value === null) {
+            ids= elementStore.rootIds;
+        }else if (selectedShowDirTitleId.value === null) {
+            ids= elementStore.elMap.get(selectedShowDirTitleId.value)?.children
+        }
+        //遍历ids,过滤掉类型不为'title'的元素
+        ids=ids.filter(id=>elementStore.elMap.get(id)?.type==='title')
+        return ids
     });
 
 

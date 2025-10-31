@@ -42,7 +42,7 @@ const toggleExpand = () => {
 .directory-panel {
   &.expanded .directory-content {
     width: 300px;
-    min-width: 400px; /* 确保展开时宽度稳定 */
+    min-width: 300px; /* 确保展开时宽度稳定 */
   }
   &:not(.expanded) .directory-content {
     width: 0;

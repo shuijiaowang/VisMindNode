@@ -13,9 +13,7 @@
         :offsetY="offsetY"
         :scale="scale"
     />
-    <div class="toolbar">
-      <BottomToolbar/>
-    </div>
+    <BottomToolbar/>
     <!-- 数据看板 -->
     <div class="log">
       <DataDashboard />
@@ -150,22 +148,5 @@ onUnmounted(() => {
 /* 拖拽时的鼠标样式 */
 .canvas-view-wrapper:active {
   cursor: grabbing; /* 拖拽中手势 */
-}
-
-/* 内部画布区域：暂时给个固定大小，方便看到 */
-
-.toolbar {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-}
-/* 数据看板样式 */
-.log {
-  position: fixed;
-  top: 10px; /* 位于工具栏上方 */
-  left: 5%;
-  z-index: 100;
 }
 </style>

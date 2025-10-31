@@ -1,0 +1,309 @@
+{
+  "id": "canvasState",
+  "elements": [
+    {
+      "id": "cf11f27f-da0c-4e94-a701-10bc4c7683e7",
+      "type": "title",
+      "x": 499551,
+      "y": 499836,
+      "content": "规则",
+      "parentId": null,
+      "children": [
+        "861756ac-c189-4827-a709-4418c7167fbd"
+      ],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761839594242,
+      "style": {
+        "fontSize": 24,
+        "color": "#333"
+      },
+      "isExpanded": false
+    },
+    {
+      "id": "861756ac-c189-4827-a709-4418c7167fbd",
+      "type": "text",
+      "x": 499555,
+      "y": 499944,
+      "content": "1，12:00前上床睡觉\n2，不要浪费精神力",
+      "parentId": "cf11f27f-da0c-4e94-a701-10bc4c7683e7",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761839607525,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "cb13101b-9f41-4bdb-85a9-6d45ea09bcd7",
+      "type": "title",
+      "x": 500168,
+      "y": 499801,
+      "content": "任务",
+      "parentId": null,
+      "children": [
+        "9dd4d372-fd40-4d24-823e-48f61d2a5ece"
+      ],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761839839303,
+      "style": {
+        "fontSize": 24,
+        "color": "#333"
+      },
+      "isExpanded": false
+    },
+    {
+      "id": "9dd4d372-fd40-4d24-823e-48f61d2a5ece",
+      "type": "text",
+      "x": 500162,
+      "y": 499883,
+      "content": "学习如何在网页上修改文字，并同步保存到系统文件，",
+      "parentId": "cb13101b-9f41-4bdb-85a9-6d45ea09bcd7",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761839862673,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "c9d59fb9-4600-4012-9ffb-a3ed9daceb56",
+      "type": "title",
+      "x": 499938.62721,
+      "y": 499900.69673,
+      "content": "原点",
+      "parentId": null,
+      "children": [
+        "2377b2f3-cc4b-4c48-be84-f9c7117ac311"
+      ],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761915642545,
+      "style": {
+        "fontSize": 24,
+        "color": "#333"
+      },
+      "isExpanded": false
+    },
+    {
+      "id": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "type": "title",
+      "x": 501080.62721,
+      "y": 499809.69673,
+      "content": "计划",
+      "parentId": null,
+      "children": [
+        "265d373e-7ee3-46ab-b5d7-64f0b322d98e",
+        "dd494191-9680-49cc-8c03-870b5b2662e3",
+        "961235d9-d54c-41a9-aa94-62c3e144d850",
+        "87152965-0a18-4197-a2d0-c2699f7ca3fa",
+        "d7644a8c-7640-4910-9385-b421b405da50",
+        "debc79a7-ea4a-46b6-80e0-673f932d8df8",
+        "3cb00398-63c4-4601-a2af-e80c4c249c6e",
+        "ca2da76a-7ce7-4d7c-9e4a-a43b8c663802"
+      ],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916007245,
+      "style": {
+        "fontSize": 24,
+        "color": "#333"
+      },
+      "isExpanded": false
+    },
+    {
+      "id": "265d373e-7ee3-46ab-b5d7-64f0b322d98e",
+      "type": "text",
+      "x": 500939.87221,
+      "y": 499905.36573,
+      "content": "每天：\n\n吃一个水果\n吃两个鸡蛋\n刷牙两次\n12点前睡觉\n十一点刷牙，而不是睡前才刷\n\n\n\n        \n",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916038550,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "dd494191-9680-49cc-8c03-870b5b2662e3",
+      "type": "text",
+      "x": 501257.62721,
+      "y": 499911.69673,
+      "content": "周一\n\n金刚功\n\n",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916200901,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "961235d9-d54c-41a9-aa94-62c3e144d850",
+      "type": "text",
+      "x": 501936.62721,
+      "y": 499907.69673,
+      "content": "周五\n\n金刚功\n扫地、拖地",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916206106,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "87152965-0a18-4197-a2d0-c2699f7ca3fa",
+      "type": "text",
+      "x": 502210.62721,
+      "y": 499913.69673,
+      "content": "周日\n\n锻炼\n洗澡",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916206533,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "d7644a8c-7640-4910-9385-b421b405da50",
+      "type": "text",
+      "x": 502074.62721,
+      "y": 499912.69673,
+      "content": "周六\n\n金刚功",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916206902,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "debc79a7-ea4a-46b6-80e0-673f932d8df8",
+      "type": "text",
+      "x": 501587.62721,
+      "y": 499901.69673,
+      "content": "周三\n\n金刚功",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916207269,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "3cb00398-63c4-4601-a2af-e80c4c249c6e",
+      "type": "text",
+      "x": 501412.62721,
+      "y": 499910.69673,
+      "content": "周二\n\n锻炼\n洗澡",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916207628,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "ca2da76a-7ce7-4d7c-9e4a-a43b8c663802",
+      "type": "text",
+      "x": 501766.62721,
+      "y": 499911.69673,
+      "content": "周四\n\n锻炼\n洗澡",
+      "parentId": "b93c29ef-1404-4293-9675-0605d84d2979",
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761916208176,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "6903fb49-d349-4e56-865d-a82a25d802cb",
+      "type": "text",
+      "x": 500952.625,
+      "y": 500317.28900000005,
+      "content": "洗澡时间：21分钟",
+      "parentId": null,
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761923368688,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    },
+    {
+      "id": "1a59a513-7a95-4943-b8c6-0c38359e6938",
+      "type": "text",
+      "x": 501557,
+      "y": 500357,
+      "content": "记账\n10.31 卫生纸17.9，坚果碎，22.28，",
+      "parentId": null,
+      "children": [],
+      "zIndex": 1,
+      "isLocked": false,
+      "isShow": true,
+      "createdAt": 1761924390915,
+      "style": {
+        "fontSize": 14,
+        "color": "#333"
+      }
+    }
+  ],
+  "rootIds": [
+    "cf11f27f-da0c-4e94-a701-10bc4c7683e7",
+    "cb13101b-9f41-4bdb-85a9-6d45ea09bcd7",
+    "c9d59fb9-4600-4012-9ffb-a3ed9daceb56",
+    "b93c29ef-1404-4293-9675-0605d84d2979",
+    "6903fb49-d349-4e56-865d-a82a25d802cb",
+    "1a59a513-7a95-4943-b8c6-0c38359e6938"
+  ],
+  "viewState": {
+    "offsetX": -1221.938795341192,
+    "offsetY": -171.74660405711882,
+    "scale": 0.7513148009015777
+  }
+}

@@ -169,14 +169,12 @@ const handleImport = async (e) => {
 </script>
 <style scoped>
 .toolbar {
-  font-size: 13px;
   position: fixed;
   bottom: 20px;
-  left: 50%;
+  left: 30%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
-  padding: 10px;
+  gap: 6px;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -184,8 +182,8 @@ const handleImport = async (e) => {
 }
 
 .toolbar button {
-  font-size: 13px;
-  padding: 6px 12px;
+  font-size: 12px;
+  padding: 4px 8px;
   border: none;
   border-radius: 4px;
   background-color: #42b983;
